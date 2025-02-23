@@ -118,6 +118,8 @@ const data1 = ref({
   d: '',
 });
 
+// TODO: ab、cd、ac、bd、n也可以让用户输入
+
 const k2 = computed(() => {
   let a = Number(data1.value.a) || 0;
   let b = Number(data1.value.b) || 0;
