@@ -1,6 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  devtools: { enabled: true },
+  // devtools: { enabled: true },
   css: ['~/assets/css/main.css'],
   postcss: {
     plugins: {
@@ -9,7 +9,7 @@ export default defineNuxtConfig({
     },
   },
   app: {
-    // pageTransition: true,
+    pageTransition: true,
     // layoutTransition: true,
     head: {
       title: '极客学园工具站',
@@ -38,4 +38,4 @@ export default defineNuxtConfig({
       },
     },
   },
-})
+});
