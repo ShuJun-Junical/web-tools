@@ -1,5 +1,8 @@
 <template>
-  <div>
-    <NuxtWelcome />
-  </div>
+  <PublicHeader></PublicHeader>
+  <PublicDrawer>
+    <main class="grow p-4">
+      <NuxtPage />
+    </main>
+  </PublicDrawer>
 </template>
