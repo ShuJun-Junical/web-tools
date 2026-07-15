@@ -1,75 +1,46 @@
-# Nuxt 3 Minimal Starter
+# 极客学园工具站
 
-Look at the [Nuxt 3 documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+一个基于 Vue 3、Vite、Tailwind CSS、shadcn-vue 和 VueUse 的纯前端工具站。所有输入数据都只在浏览器中处理。
 
-## Setup
+## 环境
 
-Make sure to install the dependencies:
+- Node.js `^20.19.0 || >=22.12.0`
+- pnpm 11
+
+## 开发
 
 ```bash
-# npm
-npm install
-
-# pnpm
 pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
+pnpm dev
 ```
 
-## Development Server
-
-Start the development server on `http://localhost:3000`:
+## 验证
 
 ```bash
-# npm
-npm run dev
-
-# pnpm
-pnpm run dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
+pnpm typecheck
+pnpm test
+pnpm build
+pnpm outdated
 ```
 
-## Production
+生产构建输出到 `dist/`。
 
-Build the application for production:
+TypeScript 暂时固定在最新的 6.x 稳定版；TypeScript 7 移除了 `vue-tsc` 当前依赖的导出路径，待 `vue-tsc` 支持后再升级。
 
-```bash
-# npm
-npm run build
+## 静态部署
 
-# pnpm
-pnpm run build
+项目使用 Vue Router HTML5 History 模式。静态托管平台需要把不存在的文件路径回退到 `/index.html`，否则直接访问 `/codec/base64` 等地址会返回 404。
 
-# yarn
-yarn build
+Nginx 示例：
 
-# bun
-bun run build
+```nginx
+location / {
+  try_files $uri $uri/ /index.html;
+}
 ```
 
-Locally preview production build:
+Netlify 可以在 `public/_redirects` 中配置：
 
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm run preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
+```text
+/* /index.html 200
 ```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
