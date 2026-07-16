@@ -1,5 +1,16 @@
 export const toolGroups = [
   {
+    title: '校验工具',
+    tools: [
+      {
+        path: '/validator/chinese-id',
+        title: '身份证校验',
+        description: '批量检查 18 位身份证号码的 MOD 11-2 校验码。',
+        component: () => import('@/pages/validator/ChineseIdPage.vue'),
+      },
+    ],
+  },
+  {
     title: '统计学计算器',
     tools: [
       {
