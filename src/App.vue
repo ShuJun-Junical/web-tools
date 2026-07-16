@@ -1,22 +1,32 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
-import { useTitle } from '@vueuse/core'
-import { Menu, Wrench, X } from '@lucide/vue'
-import { Button } from '@/components/ui/button'
-import { toolGroups } from '@/tools'
+import { computed, ref, watch } from 'vue';
+import { useRoute } from 'vue-router';
+import { useTitle } from '@vueuse/core';
+import { Menu, Wrench, X } from '@lucide/vue';
+import GlobalToast from '@/components/GlobalToast.vue';
+import { Button } from '@/components/ui/button';
+import { toolGroups } from '@/tools';
 
-const route = useRoute()
-const navigationOpen = ref(false)
-const pageTitle = computed(() => `${String(route.meta.title ?? '工具站')} · 极客学园工具站`)
+const route = useRoute();
+const navigationOpen = ref(false);
+const pageTitle = computed(
+  () => `${String(route.meta.title ?? '工具站')} | 纾浚的工具站`,
+);
 
-useTitle(pageTitle)
-watch(() => route.path, () => { navigationOpen.value = false })
+useTitle(pageTitle);
+watch(
+  () => route.path,
+  () => {
+    navigationOpen.value = false;
+  },
+);
 </script>
 
 <template>
   <div class="min-h-screen bg-muted/30">
-    <header class="fixed inset-x-0 top-0 z-40 h-16 border-b bg-background/95 backdrop-blur">
+    <header
+      class="fixed inset-x-0 top-0 z-40 h-16 border-b bg-background/95 backdrop-blur"
+    >
       <div class="flex h-full items-center gap-3 px-4 lg:px-6">
         <Button
           variant="ghost"
@@ -30,11 +40,16 @@ watch(() => route.path, () => { navigationOpen.value = false })
           <X v-if="navigationOpen" />
           <Menu v-else />
         </Button>
-        <RouterLink to="/" class="flex items-center gap-2 rounded-md font-semibold">
-          <span class="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+        <RouterLink
+          to="/"
+          class="flex items-center gap-2 rounded-md font-semibold"
+        >
+          <span
+            class="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground"
+          >
             <Wrench class="size-4" aria-hidden="true" />
           </span>
-          极客学园工具站
+          工具站
         </RouterLink>
       </div>
     </header>
@@ -54,7 +69,9 @@ watch(() => route.path, () => { navigationOpen.value = false })
     >
       <nav class="space-y-6">
         <section v-for="group in toolGroups" :key="group.title">
-          <h2 class="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <h2
+            class="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+          >
             {{ group.title }}
           </h2>
           <ul class="space-y-1">
@@ -77,5 +94,7 @@ watch(() => route.path, () => { navigationOpen.value = false })
         <RouterView />
       </div>
     </main>
+
+    <GlobalToast />
   </div>
 </template>
