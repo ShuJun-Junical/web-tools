@@ -10,6 +10,12 @@ export interface Summary {
   modes: number[]
 }
 
+export interface LinearCorrelation {
+  coefficient: number
+  slope: number
+  intercept: number
+}
+
 export function parseNumberLines(text: string) {
   const values: number[] = []
   const invalidLines: number[] = []
@@ -63,4 +69,30 @@ export function chiSquare2x2([a, b, c, d]: readonly number[]): number | null {
   const n = a + b + c + d
   const denominator = (a + b) * (c + d) * (a + c) * (b + d)
   return denominator ? (n * (a * d - b * c) ** 2) / denominator : null
+}
+
+export function linearCorrelation(x: number[], y: number[]): LinearCorrelation | null {
+  if (x.length !== y.length || x.length < 2) return null
+
+  const meanX = x.reduce((sum, value) => sum + value, 0) / x.length
+  const meanY = y.reduce((sum, value) => sum + value, 0) / y.length
+  let covariance = 0
+  let varianceX = 0
+  let varianceY = 0
+
+  x.forEach((value, index) => {
+    const deviationX = value - meanX
+    const deviationY = y[index] - meanY
+    covariance += deviationX * deviationY
+    varianceX += deviationX ** 2
+    varianceY += deviationY ** 2
+  })
+
+  if (!varianceX || !varianceY) return null
+
+  return {
+    coefficient: covariance / Math.sqrt(varianceX * varianceY),
+    slope: covariance / varianceX,
+    intercept: meanY - (covariance / varianceX) * meanX,
+  }
 }
