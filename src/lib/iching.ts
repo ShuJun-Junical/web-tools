@@ -1,9 +1,16 @@
 export type PositiveCount = 0 | 1 | 2 | 3
 
+export type Trigram = {
+  name: string
+  image: string
+}
+
 export type Hexagram = {
   number: number
   name: string
   lines: boolean[]
+  lowerTrigram: Trigram
+  upperTrigram: Trigram
 }
 
 export const yaoNames: Record<PositiveCount, string> = {
@@ -24,13 +31,24 @@ const hexagramNames = [
   '巽为风', '兑为泽', '风水涣', '水泽节', '风泽中孚', '雷山小过', '水火既济', '火水未济',
 ] as const
 
+const trigrams: readonly Trigram[] = [
+  { name: '坤', image: '地' },
+  { name: '震', image: '雷' },
+  { name: '坎', image: '水' },
+  { name: '兑', image: '泽' },
+  { name: '艮', image: '山' },
+  { name: '离', image: '火' },
+  { name: '巽', image: '风' },
+  { name: '乾', image: '天' },
+]
+
 // 行是上卦，列是下卦；三位二进制从初爻起以阳为 1。
 const kingWenNumbers = [
   [2, 24, 7, 19, 15, 36, 46, 11],
-  [23, 27, 4, 41, 52, 22, 18, 26],
+  [16, 51, 40, 54, 62, 55, 32, 34],
   [8, 3, 29, 60, 39, 63, 48, 5],
   [45, 17, 47, 58, 31, 49, 28, 43],
-  [16, 51, 40, 54, 62, 55, 32, 34],
+  [23, 27, 4, 41, 52, 22, 18, 26],
   [35, 21, 64, 38, 56, 30, 50, 14],
   [20, 42, 59, 61, 53, 37, 57, 9],
   [12, 25, 6, 10, 33, 13, 44, 1],
@@ -41,7 +59,13 @@ export function getHexagram(lines: boolean[]): Hexagram {
   const lower = Number(lines[0]) | Number(lines[1]) << 1 | Number(lines[2]) << 2
   const upper = Number(lines[3]) | Number(lines[4]) << 1 | Number(lines[5]) << 2
   const number = kingWenNumbers[upper][lower]
-  return { number, name: hexagramNames[number - 1], lines }
+  return {
+    number,
+    name: hexagramNames[number - 1],
+    lines,
+    lowerTrigram: trigrams[lower],
+    upperTrigram: trigrams[upper],
+  }
 }
 
 export function interpretYao(positiveCounts: PositiveCount[]) {
@@ -51,6 +75,7 @@ export function interpretYao(positiveCounts: PositiveCount[]) {
   return {
     original: getHexagram(originalLines),
     changed: getHexagram(changedLines),
+    mutual: getHexagram([originalLines[1], originalLines[2], originalLines[3], originalLines[2], originalLines[3], originalLines[4]]),
     changingLines: positiveCounts.flatMap((count, index) => count === 0 || count === 3 ? [index + 1] : []),
   }
 }
