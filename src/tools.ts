@@ -1,5 +1,16 @@
 export const toolGroups = [
   {
+    title: '生活工具',
+    tools: [
+      {
+        path: '/life/iching',
+        title: '周易六十四卦',
+        description: '用三枚铜钱法随机起卦，查看本卦、动爻和变卦。',
+        component: () => import('@/pages/life/IChingPage.vue'),
+      },
+    ],
+  },
+  {
     title: '校验工具',
     tools: [
       {
