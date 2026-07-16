@@ -54,6 +54,12 @@ export const toolGroups = [
         description: '对 URL 组件进行编码和解码。',
         component: () => import('@/pages/codec/UrlCodecPage.vue'),
       },
+      {
+        path: '/codec/unicode-english',
+        title: 'Unicode 英文字体',
+        description: '将英文字母和数字转换为多种 Unicode 字符样式。',
+        component: () => import('@/pages/codec/UnicodeEnglishPage.vue'),
+      },
     ],
   },
 ] as const
