@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { chiSquare2x2, parseNumberLines, summarize } from '@/lib/statistics'
+import { chiSquare2x2, linearCorrelation, parseNumberLines, summarize } from '@/lib/statistics'
 
 describe('描述统计', () => {
   it('识别非法输入所在行', () => {
@@ -34,5 +34,21 @@ describe('2×2 Pearson 卡方统计量', () => {
 
   it('零分母时不计算', () => {
     expect(chiSquare2x2([0, 0, 10, 20])).toBeNull()
+  })
+})
+
+describe('Pearson 线性相关', () => {
+  it('计算完全正相关及回归方程', () => {
+    expect(linearCorrelation([1, 2, 3], [3, 5, 7])).toEqual({
+      coefficient: 1,
+      slope: 2,
+      intercept: 1,
+    })
+  })
+
+  it('数据为空、数量不等或无方差时不计算', () => {
+    expect(linearCorrelation([], [])).toBeNull()
+    expect(linearCorrelation([1, 2], [1])).toBeNull()
+    expect(linearCorrelation([1, 1], [2, 3])).toBeNull()
   })
 })

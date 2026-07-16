@@ -25,6 +25,12 @@ export const toolGroups = [
         description: '计算 2×2 列联表的 Pearson 卡方统计量。',
         component: () => import('@/pages/statistic/IndependencePage.vue'),
       },
+      {
+        path: '/statistic/correlation',
+        title: '线性相关关系',
+        description: '计算两组数据的 Pearson 相关系数并绘制散点图。',
+        component: () => import('@/pages/statistic/CorrelationPage.vue'),
+      },
     ],
   },
   {
