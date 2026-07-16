@@ -1,17 +1,18 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import ToolPage from '@/components/ToolPage.vue'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { useClipboardActions } from '@/composables/useClipboardActions'
-import { decodeBase64, encodeBase64 } from '@/lib/codecs'
+import { useToast } from '@/composables/useToast'
+import { decodeBase64, encodeBase64, looksLikeBase64 } from '@/lib/codecs'
 
 const original = ref('')
 const encoded = ref('')
 const conversionError = ref('')
-const { copied, copyPending, clipboardError, copyText, readText } = useClipboardActions()
-const feedback = computed(() => conversionError.value || clipboardError.value || (copied.value ? '已复制到剪贴板。' : ''))
+const { copyPending, clipboardError, copyText, readText } = useClipboardActions()
+const { showToast } = useToast()
 
 function updateOriginal(value: string | number) {
   original.value = String(value)
@@ -30,18 +31,50 @@ function updateEncoded(value: string | number) {
   }
 }
 
-async function pasteOriginal(copyAfter = false) {
+async function pasteOriginal() {
   const value = await readText()
   if (value === null) return
   updateOriginal(value)
-  if (copyAfter) await copyText(encoded.value)
 }
 
-async function pasteEncoded(copyAfter = false) {
+async function pasteEncoded() {
   const value = await readText()
   if (value === null) return
+  acceptPastedEncoded(value)
+}
+
+function acceptPastedEncoded(value: string) {
   updateEncoded(value)
-  if (copyAfter && !conversionError.value) await copyText(original.value)
+  if (!conversionError.value) return 'base64'
+
+  if (!looksLikeBase64(value)) {
+    updateOriginal(value)
+    return 'original'
+  }
+
+  showToast('这不是有效的 UTF-8 Base64 字符串')
+  return 'invalid'
+}
+
+async function pasteAndCopy() {
+  const value = await readText()
+  if (value === null) return
+
+  const detected = acceptPastedEncoded(value)
+  if (detected === 'invalid') return
+
+  await copyText(
+    detected === 'base64' ? original.value : encoded.value,
+    detected === 'base64'
+      ? '检测到有效的 Base64，已复制原文。'
+      : '检测到文本，已转为 Base64。',
+  )
+}
+
+function handleEncodedPaste(event: ClipboardEvent) {
+  if (!event.clipboardData) return
+  event.preventDefault()
+  acceptPastedEncoded(event.clipboardData.getData('text'))
 }
 
 function clear() {
@@ -54,8 +87,7 @@ function clear() {
 <template>
   <ToolPage title="Base64 文本" category="编解码工具" description="在 UTF-8 文本与 Base64 之间实时转换，数据只在浏览器中处理。">
     <div class="flex flex-wrap gap-2">
-      <Button variant="secondary" @click="pasteOriginal(true)">粘贴原文并复制编码</Button>
-      <Button variant="secondary" @click="pasteEncoded(true)">粘贴编码并复制原文</Button>
+      <Button variant="secondary" @click="pasteAndCopy">粘贴并自动检测</Button>
       <Button variant="outline" :disabled="!original && !encoded" @click="clear">清空所有</Button>
     </div>
 
@@ -87,6 +119,7 @@ function clear() {
             class="min-h-64 resize-y font-mono"
             placeholder="输入或粘贴 Base64"
             :aria-invalid="Boolean(conversionError)"
+            @paste="handleEncodedPaste"
             @update:model-value="updateEncoded"
           />
           <div class="flex gap-2">
@@ -98,8 +131,8 @@ function clear() {
       </Card>
     </div>
 
-    <p v-if="feedback" role="status" aria-live="polite" :class="conversionError || clipboardError ? 'text-destructive' : 'text-muted-foreground'" class="text-sm">
-      {{ feedback }}
+    <p v-if="clipboardError" role="status" aria-live="polite" class="text-sm text-destructive">
+      {{ clipboardError }}
     </p>
   </ToolPage>
 </template>

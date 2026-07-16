@@ -1,4 +1,6 @@
 const IMAGE_DATA_URL = /^data:(image\/[a-z0-9.+-]+);base64,([a-z0-9+/]+={0,2})$/i
+const BASE64 = /^[a-z0-9+/]*={0,2}$/i
+const URL_ENCODING = /%[0-9a-f]{2}/i
 
 export function encodeBase64(value: string): string {
   const bytes = new TextEncoder().encode(value)
@@ -17,12 +19,20 @@ export function decodeBase64(value: string): string {
   return new TextDecoder('utf-8', { fatal: true }).decode(bytes)
 }
 
+export function looksLikeBase64(value: string): boolean {
+  return BASE64.test(value.replace(/\s/g, ''))
+}
+
 export function encodeUrl(value: string): string {
   return encodeURIComponent(value)
 }
 
 export function decodeUrl(value: string): string {
   return decodeURIComponent(value)
+}
+
+export function looksLikeUrlEncoding(value: string): boolean {
+  return URL_ENCODING.test(value)
 }
 
 export function parseImageDataUrl(value: string) {

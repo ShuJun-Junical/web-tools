@@ -5,6 +5,8 @@ import {
   encodeBase64,
   encodeUrl,
   imageDataUrlToBlob,
+  looksLikeBase64,
+  looksLikeUrlEncoding,
   parseImageDataUrl,
 } from '@/lib/codecs'
 
@@ -17,6 +19,13 @@ describe('Base64 文本转换', () => {
     expect(() => decodeBase64('%%%')).toThrow()
     expect(() => decodeBase64('/w==')).toThrow()
   })
+
+  it('区分 Base64 形式和普通原文', () => {
+    expect(looksLikeBase64('/w==')).toBe(true)
+    expect(looksLikeBase64('普通原文')).toBe(false)
+    expect(looksLikeBase64('hello')).toBe(true)
+    expect(looksLikeBase64('a=b')).toBe(false)
+  })
 })
 
 describe('URL 编解码', () => {
@@ -27,6 +36,12 @@ describe('URL 编解码', () => {
 
   it('拒绝不完整的百分号序列', () => {
     expect(() => decodeUrl('%E4%A0')).toThrow()
+  })
+
+  it('区分 URL 编码形式和普通原文', () => {
+    expect(looksLikeUrlEncoding('hello%20world')).toBe(true)
+    expect(looksLikeUrlEncoding('%E4%A0')).toBe(true)
+    expect(looksLikeUrlEncoding('100% complete')).toBe(false)
   })
 })
 

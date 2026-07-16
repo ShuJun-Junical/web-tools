@@ -1,17 +1,18 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import ToolPage from '@/components/ToolPage.vue'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { useClipboardActions } from '@/composables/useClipboardActions'
-import { decodeUrl, encodeUrl } from '@/lib/codecs'
+import { useToast } from '@/composables/useToast'
+import { decodeUrl, encodeUrl, looksLikeUrlEncoding } from '@/lib/codecs'
 
 const original = ref('')
 const encoded = ref('')
 const conversionError = ref('')
-const { copied, copyPending, clipboardError, copyText, readText } = useClipboardActions()
-const feedback = computed(() => conversionError.value || clipboardError.value || (copied.value ? '已复制到剪贴板。' : ''))
+const { copyPending, clipboardError, copyText, readText } = useClipboardActions()
+const { showToast } = useToast()
 
 function updateOriginal(value: string | number) {
   original.value = String(value)
@@ -29,18 +30,50 @@ function updateEncoded(value: string | number) {
   }
 }
 
-async function pasteOriginal(copyAfter = false) {
+async function pasteOriginal() {
   const value = await readText()
   if (value === null) return
   updateOriginal(value)
-  if (copyAfter) await copyText(encoded.value)
 }
 
-async function pasteEncoded(copyAfter = false) {
+async function pasteEncoded() {
   const value = await readText()
   if (value === null) return
+  acceptPastedEncoded(value)
+}
+
+function acceptPastedEncoded(value: string) {
+  if (!looksLikeUrlEncoding(value)) {
+    updateOriginal(value)
+    return 'original'
+  }
+
   updateEncoded(value)
-  if (copyAfter && !conversionError.value) await copyText(original.value)
+  if (!conversionError.value) return 'encoded'
+
+  showToast('这不是有效的 URL 编码字符串')
+  return 'invalid'
+}
+
+async function pasteAndCopy() {
+  const value = await readText()
+  if (value === null) return
+
+  const detected = acceptPastedEncoded(value)
+  if (detected === 'invalid') return
+
+  await copyText(
+    detected === 'encoded' ? original.value : encoded.value,
+    detected === 'encoded'
+      ? '检测到有效的 URL 编码，已复制原文。'
+      : '检测到文本，已转为 URL 编码。',
+  )
+}
+
+function handleEncodedPaste(event: ClipboardEvent) {
+  if (!event.clipboardData) return
+  event.preventDefault()
+  acceptPastedEncoded(event.clipboardData.getData('text'))
 }
 
 function clear() {
@@ -53,8 +86,7 @@ function clear() {
 <template>
   <ToolPage title="URL 编解码" category="编解码工具" description="使用 encodeURIComponent 规则转换 URL 组件。">
     <div class="flex flex-wrap gap-2">
-      <Button variant="secondary" @click="pasteOriginal(true)">粘贴原文并复制编码</Button>
-      <Button variant="secondary" @click="pasteEncoded(true)">粘贴编码并复制原文</Button>
+      <Button variant="secondary" @click="pasteAndCopy">粘贴并自动检测</Button>
       <Button variant="outline" :disabled="!original && !encoded" @click="clear">清空所有</Button>
     </div>
 
@@ -79,6 +111,7 @@ function clear() {
             class="min-h-64 resize-y font-mono"
             placeholder="输入或粘贴 URL 编码"
             :aria-invalid="Boolean(conversionError)"
+            @paste="handleEncodedPaste"
             @update:model-value="updateEncoded"
           />
           <div class="flex gap-2">
@@ -90,8 +123,8 @@ function clear() {
       </Card>
     </div>
 
-    <p v-if="feedback" role="status" aria-live="polite" :class="conversionError || clipboardError ? 'text-destructive' : 'text-muted-foreground'" class="text-sm">
-      {{ feedback }}
+    <p v-if="clipboardError" role="status" aria-live="polite" class="text-sm text-destructive">
+      {{ clipboardError }}
     </p>
   </ToolPage>
 </template>

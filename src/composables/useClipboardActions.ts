@@ -1,11 +1,13 @@
 import { useClipboard } from '@vueuse/core'
 import { ref } from 'vue'
+import { useToast } from '@/composables/useToast'
 
 export function useClipboardActions() {
-  const { copy, copied, copyPending, isSupported } = useClipboard({ copiedDuring: 1500 })
+  const { copy, copyPending, isSupported } = useClipboard()
+  const { showToast } = useToast()
   const clipboardError = ref('')
 
-  async function copyText(value: string) {
+  async function copyText(value: string, successMessage = '已复制到剪贴板。') {
     clipboardError.value = ''
     if (!isSupported.value) {
       clipboardError.value = '当前浏览器或页面环境不支持复制。'
@@ -14,6 +16,7 @@ export function useClipboardActions() {
 
     try {
       await copy(value)
+      showToast(successMessage, 'success')
       return true
     } catch {
       clipboardError.value = '复制失败，请检查浏览器的剪贴板权限。'
@@ -36,5 +39,5 @@ export function useClipboardActions() {
     }
   }
 
-  return { copied, copyPending, clipboardError, copyText, readText }
+  return { copyPending, clipboardError, copyText, readText }
 }
