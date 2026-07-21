@@ -39,6 +39,10 @@ src/
 
 ## UI 与交互
 
+- 涉及 shadcn-vue、Reka UI 或基础 UI 控件的新增、修改、修复和调试时，必须先使用项目提供的 `shadcn` skill，并遵循其组件检索、文档核对和复用流程。
+- 组件 API、属性、事件、组合方式和无障碍行为以官方 LLM 文档为依据：
+  - Reka UI：https://reka-ui.com/llms.txt
+  - shadcn/ui：https://ui.shadcn.com/llms.txt
 - 页面布局和视觉优先使用 Tailwind CSS；复用已有 shadcn-vue 组件，只添加当前功能实际需要的组件。
 - 新增按钮、单选组、复选框、选择器、弹层、日期选择器等基础交互控件前，必须先检查 `src/components/ui/`、shadcn-vue 和已安装的 Reka UI；已有对应 primitive 时直接复用或按 shadcn-vue 规范补充到 `src/components/ui/`，不得用原生标签加样式仿写同类基础组件。原生控件仅在其平台能力本身就是需求，或现有 UI 库没有对应能力时使用。
 - 通用页面结构使用现有组件，避免为单个页面创建一层包装组件。
