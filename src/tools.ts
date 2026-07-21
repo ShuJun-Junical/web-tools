@@ -3,6 +3,12 @@ export const toolGroups = [
     title: '周易预测',
     tools: [
       {
+        path: '/iching/bazi',
+        title: '生辰八字排盘',
+        description: '按节气排出四柱、十神、藏干、固定关系和大运流年。',
+        component: () => import('@/pages/life/BaziPage.vue'),
+      },
+      {
         path: '/iching/coin',
         title: '铜钱起卦',
         description: '用三枚铜钱法随机起卦，查看本卦、动爻和变卦。',
