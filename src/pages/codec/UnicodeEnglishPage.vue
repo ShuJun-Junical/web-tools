@@ -31,11 +31,7 @@ async function paste() {
 </script>
 
 <template>
-  <ToolPage
-    title="Unicode 英文字体转换"
-    category="编解码工具"
-    description="将英文字母和数字实时转换为多种 Unicode 字符样式，也可把支持的样式还原为普通字符。"
-  >
+  <ToolPage>
     <Card>
       <CardHeader><CardTitle>输入文本</CardTitle></CardHeader>
       <CardContent class="space-y-3">

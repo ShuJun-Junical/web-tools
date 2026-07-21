@@ -85,7 +85,7 @@ function clear() {
 </script>
 
 <template>
-  <ToolPage title="Base64 文本" category="编解码工具" description="在 UTF-8 文本与 Base64 之间实时转换，数据只在浏览器中处理。">
+  <ToolPage>
     <div class="flex flex-wrap gap-2">
       <Button variant="secondary" @click="pasteAndCopy">粘贴并自动检测</Button>
       <Button variant="outline" :disabled="!original && !encoded" @click="clear">清空所有</Button>

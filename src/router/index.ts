@@ -14,7 +14,11 @@ const router = createRouter({
       group.tools.map(tool => ({
         path: tool.path,
         component: tool.component,
-        meta: { title: tool.title },
+        meta: {
+          title: tool.title,
+          category: group.title,
+          description: tool.description,
+        },
       })),
     ),
     {

@@ -19,7 +19,7 @@ async function paste() {
 </script>
 
 <template>
-  <ToolPage title="身份证校验" category="校验工具" description="批量检查 18 位身份证号码的 MOD 11-2 校验码，数据只在浏览器中处理。">
+  <ToolPage>
     <Card>
       <CardHeader><CardTitle>身份证号码</CardTitle></CardHeader>
       <CardContent class="space-y-4">

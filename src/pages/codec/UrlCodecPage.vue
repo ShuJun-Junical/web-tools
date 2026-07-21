@@ -84,7 +84,7 @@ function clear() {
 </script>
 
 <template>
-  <ToolPage title="URL 编解码" category="编解码工具" description="使用 encodeURIComponent 规则转换 URL 组件。">
+  <ToolPage>
     <div class="flex flex-wrap gap-2">
       <Button variant="secondary" @click="pasteAndCopy">粘贴并自动检测</Button>
       <Button variant="outline" :disabled="!original && !encoded" @click="clear">清空所有</Button>

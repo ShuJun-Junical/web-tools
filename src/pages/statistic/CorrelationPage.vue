@@ -67,7 +67,7 @@ function clear() {
 </script>
 
 <template>
-  <ToolPage title="线性相关关系" category="统计学计算器" description="输入成对的 x、y 数据，计算 Pearson 相关系数并绘制散点图和回归直线。">
+  <ToolPage>
     <Card>
       <CardHeader><CardTitle>输入数据</CardTitle></CardHeader>
       <CardContent class="space-y-4">

@@ -85,10 +85,14 @@ export function countPositiveCoins(coins: boolean[]): PositiveCount {
   return coins.filter(Boolean).length as PositiveCount
 }
 
-export function castCoins(): { tosses: boolean[][], positiveCounts: PositiveCount[] } {
+export function castCoins(actionSample = 0): { tosses: boolean[][], positiveCounts: PositiveCount[] } {
   const random = crypto.getRandomValues(new Uint8Array(18))
+  const actionBits = Math.trunc(actionSample * 1000) >>> 0
   const tosses = Array.from({ length: 6 }, (_, line) =>
-    Array.from({ length: 3 }, (_, coin) => (random[line * 3 + coin] & 1) === 1),
+    Array.from({ length: 3 }, (_, coin) => {
+      const index = line * 3 + coin
+      return ((random[index] ^ (actionBits >>> index)) & 1) === 1
+    }),
   )
   return { tosses, positiveCounts: tosses.map(countPositiveCoins) }
 }
