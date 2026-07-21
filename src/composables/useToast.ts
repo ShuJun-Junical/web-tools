@@ -1,18 +1,16 @@
-import { ref } from 'vue'
+import { nextTick, ref } from 'vue'
 
 const message = ref('')
 const variant = ref<'success' | 'error'>('success')
-let timer: ReturnType<typeof setTimeout> | undefined
+const open = ref(false)
 
 export function useToast() {
   function showToast(value: string, type: 'success' | 'error' = 'error') {
     message.value = value
     variant.value = type
-    clearTimeout(timer)
-    timer = setTimeout(() => {
-      message.value = ''
-    }, 2500)
+    open.value = false
+    nextTick(() => { open.value = true })
   }
 
-  return { message, variant, showToast }
+  return { message, open, variant, showToast }
 }

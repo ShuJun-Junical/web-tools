@@ -4,8 +4,8 @@ import { useRoute } from 'vue-router';
 import { useTitle } from '@vueuse/core';
 import { Menu, Wrench, X } from '@lucide/vue';
 import { useRegisterSW } from 'virtual:pwa-register/vue';
-import GlobalToast from '@/components/GlobalToast.vue';
 import { Button } from '@/components/ui/button';
+import { ToastHost } from '@/components/ui/toast';
 import { toolGroups } from '@/tools';
 
 const route = useRoute();
@@ -97,7 +97,7 @@ watch(
       </div>
     </main>
 
-    <GlobalToast />
+    <ToastHost />
 
     <section
       v-if="needRefresh"
