@@ -1,18 +1,21 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
+import CalendarDatePicker from '@/components/CalendarDatePicker.vue'
 import ToolPage from '@/components/ToolPage.vue'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { RadioGroup } from '@/components/ui/radio-group'
+import { Select } from '@/components/ui/select'
 import { calculateBazi, type BaziInput, type BaziResult, type FiveElement } from '@/lib/bazi'
 
 const form = reactive({
-  calendar: 'solar',
-  year: '1990',
-  month: '1',
-  day: '1',
-  hour: '12',
-  minute: '0',
+  calendar: 'solar' as BaziInput['calendar'],
+  year: '',
+  month: '',
+  day: '',
+  hour: '',
+  minute: '',
   leapMonth: false,
   gender: 'male',
   daySect: '2',
@@ -21,14 +24,42 @@ const form = reactive({
 const result = ref<BaziResult | null>(null)
 const error = ref('')
 const selectedYear = ref<number | null>(null)
+const datePickerKey = ref(0)
 const elements: FiveElement[] = ['木', '火', '土', '金', '水']
-const selectClass = 'border-input bg-background h-9 w-full rounded-md border px-3 text-sm shadow-xs focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50'
+const genderItems = [{ value: 'male', label: '男' }, { value: 'female', label: '女' }]
+const daySectItems = [{ value: '2', label: '按当日' }, { value: '1', label: '按次日' }]
+const yunSectItems = [{ value: '1', label: '三天折一年' }, { value: '2', label: '4320 分钟折一年' }]
 
 const allYears = computed(() => result.value?.yun.daYun.flatMap(item => item.years) ?? [])
 const selectedYearData = computed(() => allYears.value.find(item => item.year === selectedYear.value) ?? null)
+const hourInvalid = computed(() => form.hour === '' || !Number.isInteger(Number(form.hour)) || Number(form.hour) < 0 || Number(form.hour) > 23)
+const minuteInvalid = computed(() => form.minute === '' || !Number.isInteger(Number(form.minute)) || Number(form.minute) < 0 || Number(form.minute) > 59)
+const canClear = computed(() => Boolean(form.year || form.month || form.day || form.hour || form.minute || result.value || error.value || form.gender !== 'male' || form.daySect !== '2' || form.yunSect !== '1'))
 
-function submit() {
+function clearPage() {
+  Object.assign(form, {
+    calendar: 'solar',
+    year: '',
+    month: '',
+    day: '',
+    hour: '',
+    minute: '',
+    leapMonth: false,
+    gender: 'male',
+    daySect: '2',
+    yunSect: '1',
+  })
+  result.value = null
   error.value = ''
+  selectedYear.value = null
+  datePickerKey.value++
+}
+
+function updateResult() {
+  error.value = ''
+  if (!form.year || !form.month || !form.day || hourInvalid.value || minuteInvalid.value) {
+    return
+  }
   try {
     const input: BaziInput = {
       calendar: form.calendar as BaziInput['calendar'],
@@ -45,67 +76,62 @@ function submit() {
     result.value = calculateBazi(input)
     selectedYear.value = result.value.yun.daYun[0]?.years[0]?.year ?? null
   } catch (cause) {
-    result.value = null
-    selectedYear.value = null
     error.value = cause instanceof Error ? cause.message : '排盘失败，请检查输入。'
   }
 }
+
+watch(form, updateResult, { immediate: true })
 </script>
 
 <template>
   <ToolPage>
     <Card>
-      <CardHeader><CardTitle>出生信息</CardTitle></CardHeader>
+      <CardHeader>
+        <CardTitle>出生信息</CardTitle>
+        <CardAction><Button type="button" variant="outline" size="sm" :disabled="!canClear" @click="clearPage">清空</Button></CardAction>
+      </CardHeader>
       <CardContent>
-        <form class="space-y-5" @submit.prevent="submit">
-          <fieldset>
-            <legend class="text-sm font-medium">历法</legend>
-            <div class="mt-2 flex gap-5">
-              <label class="flex items-center gap-2 text-sm"><input v-model="form.calendar" type="radio" value="solar">公历</label>
-              <label class="flex items-center gap-2 text-sm"><input v-model="form.calendar" type="radio" value="lunar">农历</label>
-            </div>
-          </fieldset>
+        <div class="space-y-5">
+          <CalendarDatePicker
+            :key="datePickerKey"
+            v-model:calendar="form.calendar"
+            v-model:year="form.year"
+            v-model:month="form.month"
+            v-model:day="form.day"
+            v-model:leap-month="form.leapMonth"
+          />
 
-          <div class="grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
-            <label class="space-y-2 text-sm font-medium">年<Input v-model="form.year" type="number" min="1900" max="2100" inputmode="numeric" required /></label>
-            <label class="space-y-2 text-sm font-medium">月<Input v-model="form.month" type="number" min="1" max="12" inputmode="numeric" required /></label>
-            <label class="space-y-2 text-sm font-medium">日<Input v-model="form.day" type="number" min="1" max="31" inputmode="numeric" required /></label>
-            <label class="space-y-2 text-sm font-medium">时（0—23）<Input v-model="form.hour" type="number" min="0" max="23" inputmode="numeric" required /></label>
-            <label class="space-y-2 text-sm font-medium">分（0—59）<Input v-model="form.minute" type="number" min="0" max="59" inputmode="numeric" required /></label>
-          </div>
-
-          <label v-if="form.calendar === 'lunar'" class="flex items-center gap-2 text-sm">
-            <input v-model="form.leapMonth" type="checkbox">所填月份为闰月
-          </label>
-
-          <div class="grid gap-4 sm:grid-cols-3">
+          <div class="grid gap-4 sm:grid-cols-2">
             <label class="space-y-2 text-sm font-medium">
-              性别
-              <select v-model="form.gender" :class="selectClass">
-                <option value="male">男</option>
-                <option value="female">女</option>
-              </select>
+              时（0—23）
+              <Input v-model="form.hour" type="number" min="0" max="23" inputmode="numeric" :aria-invalid="Boolean(form.hour) && hourInvalid" />
+              <span class="block min-h-5 text-xs font-normal text-destructive">{{ form.hour && hourInvalid ? '请输入 0—23 的整数。' : '' }}</span>
             </label>
             <label class="space-y-2 text-sm font-medium">
+              分（0—59）
+              <Input v-model="form.minute" type="number" min="0" max="59" inputmode="numeric" :aria-invalid="Boolean(form.minute) && minuteInvalid" />
+              <span class="block min-h-5 text-xs font-normal text-destructive">{{ form.minute && minuteInvalid ? '请输入 0—59 的整数。' : '' }}</span>
+            </label>
+          </div>
+
+          <div class="grid gap-4 sm:grid-cols-3">
+            <fieldset class="space-y-2">
+              <legend class="text-sm font-medium">性别</legend>
+              <RadioGroup v-model="form.gender" :items="genderItems" label="性别" />
+            </fieldset>
+            <label class="space-y-2 text-sm font-medium">
               晚子时日柱
-              <select v-model="form.daySect" :class="selectClass">
-                <option value="2">按当日</option>
-                <option value="1">按次日</option>
-              </select>
+              <Select v-model="form.daySect" :items="daySectItems" label="晚子时日柱" />
             </label>
             <label class="space-y-2 text-sm font-medium">
               起运算法
-              <select v-model="form.yunSect" :class="selectClass">
-                <option value="1">三天折一年</option>
-                <option value="2">4320 分钟折一年</option>
-              </select>
+              <Select v-model="form.yunSect" :items="yunSectItems" label="起运算法" />
             </label>
           </div>
 
           <p class="text-sm text-muted-foreground">出生时间按北京时间（UTC+8）录入；数据只在浏览器本地计算。</p>
-          <div class="min-h-5"><p v-if="error" role="alert" class="text-sm text-destructive">{{ error }}</p></div>
-          <Button type="submit">开始排盘</Button>
-        </form>
+          <p v-if="error" role="alert" class="text-sm text-destructive">{{ error }}</p>
+        </div>
       </CardContent>
     </Card>
 
@@ -200,9 +226,7 @@ function submit() {
         <CardHeader><CardTitle>流月</CardTitle></CardHeader>
         <CardContent class="space-y-4">
           <label class="block max-w-xs space-y-2 text-sm font-medium">选择流年
-            <select v-model.number="selectedYear" :class="selectClass">
-              <option v-for="year in allYears" :key="year.year" :value="year.year">{{ year.year }} · {{ year.ganZhi }}（{{ year.age }} 岁）</option>
-            </select>
+            <Select v-model="selectedYear" :items="allYears.map(year => ({ value: year.year, label: `${year.year} · ${year.ganZhi}（${year.age} 岁）` }))" label="选择流年" />
           </label>
           <div v-if="selectedYearData" class="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
             <div v-for="month in selectedYearData.months" :key="month.month" class="rounded-lg bg-muted/50 p-3 text-center text-sm">
