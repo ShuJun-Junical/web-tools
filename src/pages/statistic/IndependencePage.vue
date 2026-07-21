@@ -111,7 +111,7 @@ function clear() {
 </script>
 
 <template>
-  <ToolPage title="列联表和独立性检验" category="统计学计算器" description="输入 2×2 列联表频数或合计，自动补全并计算 Pearson 卡方统计量。">
+  <ToolPage>
     <Card>
       <CardHeader><CardTitle>列联表</CardTitle></CardHeader>
       <CardContent>

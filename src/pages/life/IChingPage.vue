@@ -50,8 +50,8 @@ const resultText = computed(() => {
   ].join('\n')
 })
 
-function cast() {
-  coinTosses.value = castCoins().tosses
+function cast(event: MouseEvent) {
+  coinTosses.value = castCoins(event.timeStamp).tosses
   hasResult.value = true
 }
 
@@ -71,14 +71,14 @@ function lineResult(coins: boolean[]) {
 </script>
 
 <template>
-  <ToolPage title="周易六十四卦起卦" category="生活工具" description="使用三枚铜钱法随机起六爻，查看每次结果、本卦和变卦。">
+  <ToolPage>
     <Card class="bg-muted/30 py-0 shadow-none">
       <CardContent class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div class="text-sm text-muted-foreground">
           <p>三枚铜钱连掷六次，自下而上成卦。</p>
           <p class="mt-1">三正、三反为动爻；两正或两反为静爻。</p>
         </div>
-        <Button size="sm" class="w-full sm:w-auto" @click="cast">{{ result ? '重新起卦' : '开始起卦' }}</Button>
+        <Button size="sm" class="w-full sm:w-auto" @click="cast($event)">{{ result ? '重新起卦' : '开始起卦' }}</Button>
       </CardContent>
     </Card>
 

@@ -3,12 +3,14 @@ import { computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useTitle } from '@vueuse/core';
 import { Menu, Wrench, X } from '@lucide/vue';
+import { useRegisterSW } from 'virtual:pwa-register/vue';
 import GlobalToast from '@/components/GlobalToast.vue';
 import { Button } from '@/components/ui/button';
 import { toolGroups } from '@/tools';
 
 const route = useRoute();
 const navigationOpen = ref(false);
+const { needRefresh, updateServiceWorker } = useRegisterSW();
 const pageTitle = computed(
   () => `${String(route.meta.title ?? '工具站')} | 纾浚的工具站`,
 );
@@ -96,5 +98,25 @@ watch(
     </main>
 
     <GlobalToast />
+
+    <section
+      v-if="needRefresh"
+      class="fixed inset-x-4 bottom-4 z-50 rounded-lg border bg-background p-4 shadow-lg sm:left-auto sm:right-4 sm:w-80"
+      role="status"
+      aria-live="polite"
+    >
+      <p class="text-sm font-medium">工具站已有新版本</p>
+      <p class="mt-1 text-sm text-muted-foreground">
+        更新会刷新当前页面，请先保存正在处理的内容。
+      </p>
+      <div class="mt-3 flex justify-end gap-2">
+        <Button variant="ghost" size="sm" @click="needRefresh = false">
+          稍后
+        </Button>
+        <Button size="sm" @click="updateServiceWorker(true)">
+          立即更新
+        </Button>
+      </div>
+    </section>
   </div>
 </template>

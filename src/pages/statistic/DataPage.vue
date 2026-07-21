@@ -24,7 +24,7 @@ const results = computed(() => summary.value ? [
 </script>
 
 <template>
-  <ToolPage title="描述统计" category="统计学计算器" description="每行输入一个数字，立即计算常用描述统计量。">
+  <ToolPage>
     <Card>
       <CardHeader><CardTitle>输入数据</CardTitle></CardHeader>
       <CardContent class="space-y-4">

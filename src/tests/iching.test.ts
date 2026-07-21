@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { countPositiveCoins, getHexagram, interpretYao } from '@/lib/iching'
+import { describe, expect, it, vi } from 'vitest'
+import { castCoins, countPositiveCoins, getHexagram, interpretYao } from '@/lib/iching'
 import { hexagramTexts } from '@/lib/iching-text'
 
 describe('周易起卦', () => {
@@ -15,6 +15,16 @@ describe('周易起卦', () => {
       countPositiveCoins([true, true, false]),
       countPositiveCoins([true, true, true]),
     ]).toEqual([0, 1, 2, 3])
+  })
+
+  it('将用户点击时刻混入随机结果', () => {
+    const random = vi.spyOn(globalThis.crypto, 'getRandomValues').mockImplementation((array) => {
+      new Uint8Array(array.buffer, array.byteOffset, array.byteLength).fill(0)
+      return array
+    })
+    expect(castCoins(0).tosses[0][0]).toBe(false)
+    expect(castCoins(0.001).tosses[0][0]).toBe(true)
+    random.mockRestore()
   })
 
   it('识别乾坤两卦', () => {

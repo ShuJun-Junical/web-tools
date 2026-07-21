@@ -1,10 +1,10 @@
 export const toolGroups = [
   {
-    title: '生活工具',
+    title: '周易预测',
     tools: [
       {
-        path: '/life/iching',
-        title: '周易六十四卦',
+        path: '/iching/coin',
+        title: '铜钱起卦',
         description: '用三枚铜钱法随机起卦，查看本卦、动爻和变卦。',
         component: () => import('@/pages/life/IChingPage.vue'),
       },
@@ -73,4 +73,4 @@ export const toolGroups = [
       },
     ],
   },
-] as const
+] as const;

@@ -141,11 +141,7 @@ function clear() {
 </script>
 
 <template>
-  <ToolPage
-    title="Base64 图片"
-    category="编解码工具"
-    description="将图片转换为 Data URL，或粘贴 Data URL 预览并下载图片。"
-  >
+  <ToolPage>
     <div class="grid gap-6 lg:grid-cols-2">
       <Card>
         <CardHeader><CardTitle>选择与预览</CardTitle></CardHeader>
