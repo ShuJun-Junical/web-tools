@@ -4,8 +4,7 @@ import { CalendarDate } from '@internationalized/date';
 import { Lunar, LunarYear, Solar } from 'lunar-typescript';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Combobox } from '@/components/ui/combobox';
-import { Input } from '@/components/ui/input';
-import { expandYear, parseDateInput } from '@/lib/date';
+import { expandYear } from '@/lib/date';
 
 const calendar = defineModel<'solar' | 'lunar'>('calendar', { required: true });
 const year = defineModel<string>('year', { required: true });
@@ -66,9 +65,6 @@ const solarDate = ref<CalendarDate | null>(null);
 const lunarYear = ref('');
 const lunarMonth = ref('');
 const lunarDay = ref('');
-const lunarInput = ref('');
-const formattedLunarInput = ref('');
-const lunarError = ref('');
 let syncing = false;
 
 const lunarMonths = computed(() =>
@@ -101,14 +97,16 @@ const lunarDayItems = computed(() =>
     label: lunarDayNames[value - 1],
   })),
 );
+const lunarSummary = computed(() =>
+  lunarYear.value && selectedLunarMonth.value && lunarDay.value
+    ? `${lunarYear.value}${LunarYear.fromYear(Number(lunarYear.value)).getGanZhi()}年${selectedLunarMonth.value.label}${lunarDayNames[Number(lunarDay.value) - 1]}`
+    : '',
+);
 
 function setLunar(lunar: Lunar) {
   lunarYear.value = String(lunar.getYear());
   lunarMonth.value = String(lunar.getMonth());
   lunarDay.value = String(lunar.getDay());
-  formattedLunarInput.value = `${lunar.getYear()}${LunarYear.fromYear(lunar.getYear()).getGanZhi()}年${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}`;
-  lunarInput.value = formattedLunarInput.value;
-  lunarError.value = '';
 }
 
 function useSolar(value: CalendarDate | null) {
@@ -159,36 +157,6 @@ function useLunar() {
   syncing = false;
 }
 
-function editLunarInput(value: string | number) {
-  lunarInput.value = String(value);
-  lunarError.value = lunarInput.value
-    ? '请输入完整有效的农历日期。'
-    : '请选择农历日期。';
-}
-
-function commitLunarInput() {
-  if (lunarInput.value === formattedLunarInput.value) return;
-  const value = parseDateInput(
-    lunarInput.value.replace(/^\s*农历\s*/, ''),
-    undefined,
-    (year, month, day) => ({ year, month, day }),
-  );
-  if (!value || value.year < 1900 || value.year > 2100) {
-    lunarError.value = '请输入有效农历日期，例如 20260304。';
-    return;
-  }
-  const months = LunarYear.fromYear(value.year).getMonthsInYear();
-  const target = months.find(item => item.getMonth() === value.month);
-  if (!target || value.day > target.getDayCount()) {
-    lunarError.value = '农历日期无效。';
-    return;
-  }
-  lunarYear.value = String(value.year);
-  lunarMonth.value = String(value.month);
-  lunarDay.value = String(value.day);
-  useLunar();
-}
-
 function resolveLunarYear(input: string) {
   if (!/^\d{2}(?:\d{2})?$/.test(input)) return;
   const value = input.length === 2 ? expandYear(Number(input)) : Number(input);
@@ -218,10 +186,11 @@ watch(lunarDays, days => {
 </script>
 
 <template>
-  <div class="grid gap-4">
-    <label class="space-y-2 text-sm font-medium"
-      >公历日期
+  <div class="flex flex-wrap items-start gap-4">
+    <label class="min-w-0 flex-[1_1_18rem] text-sm font-medium">
+      <span class="block">公历日期</span>
       <DatePicker
+        class="mt-2"
         v-model="solarDate"
         :min-value="minSolarDate"
         :max-value="maxSolarDate"
@@ -229,21 +198,11 @@ watch(lunarDays, days => {
         show-lunar
       />
     </label>
-    <div>
-      <label class="text-sm font-medium" for="lunar-date-input">农历日期</label>
+    <div class="min-w-0 flex-[1_1_24rem]">
+      <p class="text-sm font-medium">农历日期</p>
       <div
-        class="mt-2 grid gap-2 lg:grid-cols-[minmax(12rem,1fr)_10rem_6.5rem_6.5rem]"
+        class="mt-2 grid gap-2 sm:grid-cols-[10rem_6.5rem_6.5rem]"
       >
-        <Input
-          id="lunar-date-input"
-          :model-value="lunarInput"
-          inputmode="numeric"
-          :aria-invalid="Boolean(lunarError)"
-          placeholder="如 20260304"
-          @update:model-value="editLunarInput"
-          @blur="commitLunarInput"
-          @keydown.enter.prevent="commitLunarInput"
-        />
         <Combobox
           v-model="lunarYear"
           :items="lunarYearItems"
@@ -266,11 +225,7 @@ watch(lunarDays, days => {
           :resolve-input="resolveLunarDay"
         />
       </div>
-      <div class="min-h-5 pt-1">
-        <p v-if="lunarError" role="alert" class="text-xs text-destructive">
-          {{ lunarError }}
-        </p>
-      </div>
+      <div class="min-h-5 pt-1"><p v-if="lunarSummary" aria-live="polite" class="text-xs text-muted-foreground">{{ lunarSummary }}</p></div>
     </div>
   </div>
 </template>

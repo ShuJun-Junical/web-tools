@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { computed, reactive, ref, watch } from 'vue'
 import CalendarDatePicker from '@/components/CalendarDatePicker.vue'
+import TimePicker from '@/components/TimePicker.vue'
 import ToolPage from '@/components/ToolPage.vue'
 import { Button } from '@/components/ui/button'
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
 import { RadioGroup } from '@/components/ui/radio-group'
 import { Select } from '@/components/ui/select'
 import { calculateBazi, type BaziInput, type BaziResult, type FiveElement } from '@/lib/bazi'
@@ -32,8 +32,6 @@ const yunSectItems = [{ value: '1', label: '三天折一年' }, { value: '2', la
 
 const allYears = computed(() => result.value?.yun.daYun.flatMap(item => item.years) ?? [])
 const selectedYearData = computed(() => allYears.value.find(item => item.year === selectedYear.value) ?? null)
-const hourInvalid = computed(() => form.hour === '' || !Number.isInteger(Number(form.hour)) || Number(form.hour) < 0 || Number(form.hour) > 23)
-const minuteInvalid = computed(() => form.minute === '' || !Number.isInteger(Number(form.minute)) || Number(form.minute) < 0 || Number(form.minute) > 59)
 const canClear = computed(() => Boolean(form.year || form.month || form.day || form.hour || form.minute || result.value || error.value || form.gender !== 'male' || form.daySect !== '2' || form.yunSect !== '1'))
 
 function clearPage() {
@@ -57,7 +55,7 @@ function clearPage() {
 
 function updateResult() {
   error.value = ''
-  if (!form.year || !form.month || !form.day || hourInvalid.value || minuteInvalid.value) {
+  if (!form.year || !form.month || !form.day || !form.hour || !form.minute) {
     return
   }
   try {
@@ -91,7 +89,7 @@ watch(form, updateResult, { immediate: true })
         <CardAction><Button type="button" variant="outline" size="sm" :disabled="!canClear" @click="clearPage">清空</Button></CardAction>
       </CardHeader>
       <CardContent>
-        <div class="space-y-5">
+        <div class="space-y-4">
           <CalendarDatePicker
             :key="datePickerKey"
             v-model:calendar="form.calendar"
@@ -101,31 +99,20 @@ watch(form, updateResult, { immediate: true })
             v-model:leap-month="form.leapMonth"
           />
 
-          <div class="grid gap-4 sm:grid-cols-2">
-            <label class="space-y-2 text-sm font-medium">
-              时（0—23）
-              <Input v-model="form.hour" type="number" min="0" max="23" inputmode="numeric" :aria-invalid="Boolean(form.hour) && hourInvalid" />
-              <span class="block min-h-5 text-xs font-normal text-destructive">{{ form.hour && hourInvalid ? '请输入 0—23 的整数。' : '' }}</span>
-            </label>
-            <label class="space-y-2 text-sm font-medium">
-              分（0—59）
-              <Input v-model="form.minute" type="number" min="0" max="59" inputmode="numeric" :aria-invalid="Boolean(form.minute) && minuteInvalid" />
-              <span class="block min-h-5 text-xs font-normal text-destructive">{{ form.minute && minuteInvalid ? '请输入 0—59 的整数。' : '' }}</span>
-            </label>
-          </div>
+          <TimePicker v-model:hour="form.hour" v-model:minute="form.minute" />
 
           <div class="grid gap-4 sm:grid-cols-3">
-            <fieldset class="space-y-2">
+            <fieldset>
               <legend class="text-sm font-medium">性别</legend>
-              <RadioGroup v-model="form.gender" :items="genderItems" label="性别" />
+              <RadioGroup v-model="form.gender" :items="genderItems" label="性别" class="mt-2" />
             </fieldset>
-            <label class="space-y-2 text-sm font-medium">
-              晚子时日柱
-              <Select v-model="form.daySect" :items="daySectItems" label="晚子时日柱" />
+            <label class="block text-sm font-medium">
+              <span class="block">晚子时日柱</span>
+              <Select v-model="form.daySect" :items="daySectItems" label="晚子时日柱" class="mt-2" />
             </label>
-            <label class="space-y-2 text-sm font-medium">
-              起运算法
-              <Select v-model="form.yunSect" :items="yunSectItems" label="起运算法" />
+            <label class="block text-sm font-medium">
+              <span class="block">起运算法</span>
+              <Select v-model="form.yunSect" :items="yunSectItems" label="起运算法" class="mt-2" />
             </label>
           </div>
 
