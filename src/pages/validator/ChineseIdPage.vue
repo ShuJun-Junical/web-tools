@@ -28,6 +28,7 @@ async function paste() {
           id="chinese-id-list"
           v-model="text"
           class="min-h-64 resize-y"
+          monospace
           show-line-numbers
           placeholder="例如：&#10;11010519491231002X"
           :aria-invalid="invalidIds.length > 0"

@@ -74,11 +74,11 @@ function clear() {
         <div class="grid gap-4 sm:grid-cols-2">
           <label class="space-y-2">
             <span class="text-sm font-medium">x（每行一个数字）</span>
-            <Textarea v-model="xText" class="min-h-52 resize-y font-mono" placeholder="1&#10;2&#10;3" :aria-invalid="x.invalidLines.length > 0" />
+            <Textarea v-model="xText" class="min-h-52 resize-y" monospace placeholder="1&#10;2&#10;3" :aria-invalid="x.invalidLines.length > 0" />
           </label>
           <label class="space-y-2">
             <span class="text-sm font-medium">y（每行一个数字）</span>
-            <Textarea v-model="yText" class="min-h-52 resize-y font-mono" placeholder="2&#10;4&#10;5" :aria-invalid="y.invalidLines.length > 0" />
+            <Textarea v-model="yText" class="min-h-52 resize-y" monospace placeholder="2&#10;4&#10;5" :aria-invalid="y.invalidLines.length > 0" />
           </label>
         </div>
         <p v-if="hasErrors" role="alert" class="text-sm text-destructive">

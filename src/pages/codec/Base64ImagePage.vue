@@ -194,7 +194,8 @@ function clear() {
         <CardContent class="space-y-3">
           <Textarea
             :model-value="displayedDataUrl"
-            class="min-h-72 resize-y font-mono text-xs"
+            class="min-h-72 resize-y text-xs"
+            monospace
             placeholder="data:image/png;base64,..."
             readonly
             :aria-invalid="Boolean(imageError)"
