@@ -39,7 +39,8 @@ async function paste() {
         <Textarea
           id="unicode-english-input"
           v-model="input"
-          class="min-h-32 resize-y font-mono"
+          class="min-h-32 resize-y"
+          monospace
           placeholder="输入英文、数字或已转换的 Unicode 文本"
         />
         <div class="flex gap-2">

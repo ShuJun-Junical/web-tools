@@ -32,7 +32,8 @@ const results = computed(() => summary.value ? [
         <Textarea
           id="statistics-data"
           v-model="text"
-          class="min-h-52 resize-y font-mono"
+          class="min-h-52 resize-y"
+          monospace
           placeholder="例如：&#10;12&#10;18.5&#10;20"
           :aria-invalid="parsed.invalidLines.length > 0"
           aria-describedby="statistics-help statistics-error"

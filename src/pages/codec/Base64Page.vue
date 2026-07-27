@@ -98,7 +98,8 @@ function clear() {
           <Textarea
             id="base64-original"
             :model-value="original"
-            class="min-h-64 resize-y font-mono"
+            class="min-h-64 resize-y"
+            monospace
             placeholder="输入或粘贴原文"
             @update:model-value="updateOriginal"
           />
@@ -116,7 +117,8 @@ function clear() {
           <Textarea
             id="base64-encoded"
             :model-value="encoded"
-            class="min-h-64 resize-y font-mono"
+            class="min-h-64 resize-y"
+            monospace
             placeholder="输入或粘贴 Base64"
             :aria-invalid="Boolean(conversionError)"
             @paste="handleEncodedPaste"

@@ -28,6 +28,17 @@ export const toolGroups = [
     ],
   },
   {
+    title: '文本工具',
+    tools: [
+      {
+        path: '/text/word-count',
+        title: '字数统计',
+        description: '实时统计论文字符、汉字、英文单词、行段和编码长度。',
+        component: () => import('@/pages/text/WordCountPage.vue'),
+      },
+    ],
+  },
+  {
     title: '统计学计算器',
     tools: [
       {

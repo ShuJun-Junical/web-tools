@@ -94,7 +94,7 @@ function clear() {
       <Card>
         <CardHeader><CardTitle>原文</CardTitle></CardHeader>
         <CardContent class="space-y-3">
-          <Textarea :model-value="original" class="min-h-64 resize-y font-mono" placeholder="输入或粘贴原文" @update:model-value="updateOriginal" />
+          <Textarea :model-value="original" class="min-h-64 resize-y" monospace placeholder="输入或粘贴原文" @update:model-value="updateOriginal" />
           <div class="flex gap-2">
             <Button variant="secondary" :disabled="!original || copyPending" @click="copyText(original)">复制</Button>
             <Button variant="outline" @click="pasteOriginal()">粘贴</Button>
@@ -108,7 +108,8 @@ function clear() {
         <CardContent class="space-y-3">
           <Textarea
             :model-value="encoded"
-            class="min-h-64 resize-y font-mono"
+            class="min-h-64 resize-y"
+            monospace
             placeholder="输入或粘贴 URL 编码"
             :aria-invalid="Boolean(conversionError)"
             @paste="handleEncodedPaste"
