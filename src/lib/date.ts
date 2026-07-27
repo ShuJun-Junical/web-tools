@@ -15,24 +15,24 @@ function makeDate(year: number, month: number, day: number): ParsedDate | null {
     : null
 }
 
-export function parseDateInput(value: string, currentYear = new Date().getFullYear(), validate = makeDate): ParsedDate | null {
+export function parseDateInput(value: string, currentYear = new Date().getFullYear()): ParsedDate | null {
   const input = value.trim()
   if (/^\d{6}(?:\d{2})?$/.test(input)) {
     const yearLength = input.length - 4
     const rawYear = Number(input.slice(0, yearLength))
     const year = yearLength === 2 ? expandYear(rawYear, currentYear) : rawYear
-    return validate(year, Number(input.slice(yearLength, yearLength + 2)), Number(input.slice(-2)))
+    return makeDate(year, Number(input.slice(yearLength, yearLength + 2)), Number(input.slice(-2)))
   }
 
   if (/^\d{2}(?:\d{2})?[-/.,，\s]+\d{1,2}[-/.,，\s]+\d{1,2}$/.test(input)) {
     const [rawYear, month, day] = input.split(/[-/.,，\s]+/).map(Number)
-    return validate(rawYear < 100 ? expandYear(rawYear, currentYear) : rawYear, month, day)
+    return makeDate(rawYear < 100 ? expandYear(rawYear, currentYear) : rawYear, month, day)
   }
 
   const chinese = /^(\d{2}|\d{4})年(\d{1,2})月(\d{1,2})日$/.exec(input)
   if (chinese) {
     const [, rawYear, month, day] = chinese.map(Number)
-    return validate(rawYear < 100 ? expandYear(rawYear, currentYear) : rawYear, month, day)
+    return makeDate(rawYear < 100 ? expandYear(rawYear, currentYear) : rawYear, month, day)
   }
 
   const date = new Date(input)

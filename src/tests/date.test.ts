@@ -29,10 +29,6 @@ describe('日期输入解析', () => {
     expect(formatDateInput({ year: 2026, month: 3, day: 4 })).toBe('2026年03月04日')
   })
 
-  it('可为农历复用相同格式解析', () => {
-    expect(parseDateInput('20240230', 2026, (year, month, day) => ({ year, month, day }))).toEqual({ year: 2024, month: 2, day: 30 })
-  })
-
   it('沿用 JavaScript Date 支持的字符串格式', () => {
     expect(parseDateInput('March 4, 2026')).toEqual({ year: 2026, month: 3, day: 4 })
   })
