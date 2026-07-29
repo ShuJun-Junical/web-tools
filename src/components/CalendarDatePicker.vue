@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, ref, shallowRef, watch } from 'vue';
 import { CalendarDate } from '@internationalized/date';
 import { Lunar, LunarYear, Solar } from 'lunar-typescript';
 import { DatePicker } from '@/components/ui/date-picker';
@@ -61,7 +61,7 @@ const lunarDayNames = [
 ];
 const minSolarDate = new CalendarDate(1900, 1, 1);
 const maxSolarDate = new CalendarDate(2100, 12, 31);
-const solarDate = ref<CalendarDate | null>(null);
+const solarDate = shallowRef<CalendarDate | null>(null);
 const lunarYear = ref('');
 const lunarMonth = ref('');
 const lunarDay = ref('');

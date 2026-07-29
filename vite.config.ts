@@ -12,6 +12,22 @@ export default defineConfig({
       registerType: 'prompt',
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,svg,woff2}'],
+        navigateFallback: null,
+        runtimeCaching: [
+          {
+            urlPattern: ({ request }) => request.mode === 'navigate',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'pages',
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+              precacheFallback: {
+                fallbackURL: '/index.html',
+              },
+            },
+          },
+        ],
       },
       manifest: {
         name: '纾浚的工具站',
