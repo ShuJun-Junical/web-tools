@@ -8,9 +8,23 @@ import { Button } from '@/components/ui/button';
 import { ToastHost } from '@/components/ui/toast';
 import { toolGroups } from '@/tools';
 
+const updateCheckInterval = 60 * 60 * 1000;
 const route = useRoute();
 const navigationOpen = ref(false);
-const { needRefresh, updateServiceWorker } = useRegisterSW();
+const pageLongLived = ref(false);
+const { needRefresh, updateServiceWorker } = useRegisterSW({
+  immediate: true,
+  onRegisteredSW(_swUrl, registration) {
+    if (!registration) return;
+
+    window.setInterval(() => {
+      pageLongLived.value = true;
+      if (!registration.installing && navigator.onLine) {
+        void registration.update().catch(() => undefined);
+      }
+    }, updateCheckInterval);
+  },
+});
 const pageTitle = computed(
   () => `${String(route.meta.title ?? '工具站')} | 纾浚的工具站`,
 );
@@ -100,7 +114,7 @@ watch(
     <ToastHost />
 
     <section
-      v-if="needRefresh"
+      v-if="pageLongLived && needRefresh"
       class="fixed inset-x-4 bottom-4 z-50 rounded-lg border bg-background p-4 shadow-lg sm:left-auto sm:right-4 sm:w-80"
       role="status"
       aria-live="polite"
@@ -113,7 +127,7 @@ watch(
         <Button variant="ghost" size="sm" @click="needRefresh = false">
           稍后
         </Button>
-        <Button size="sm" @click="updateServiceWorker(true)">
+        <Button size="sm" @click="updateServiceWorker()">
           立即更新
         </Button>
       </div>
