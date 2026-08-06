@@ -4,8 +4,15 @@
 
 - 本项目是纯前端静态工具站，所有数据默认只在浏览器本地处理，不上传用户输入或文件。
 - 技术栈为 Vue 3、Vite、TypeScript、Vue Router、Tailwind CSS、shadcn-vue 和 VueUse。
-- 构建产物为 `dist/`，不增加后端、Nuxt、SSG、Pinia、PWA 等能力，除非当前需求明确需要。
+- 构建产物为 `dist/`，不增加后端、Nuxt、SSG、Pinia 等能力，除非当前需求明确需要。
 - 路由使用 HTML5 History 模式，部署端必须将未知路径回退到 `/index.html`。
+
+## PWA 更新与缓存
+
+- 使用 `vite-plugin-pwa` 的 `generateSW` 模式和 `prompt` 更新策略，不维护自定义 Service Worker。
+- 页面导航请求使用 Workbox `NetworkFirst`：在线时优先获取最新 HTML，网络失败时回退运行时缓存或预缓存的 `/index.html`。
+- 页面首次打开和主动刷新不展示更新提示；页面持续打开满 1 小时后，每小时检查一次 Service Worker，有新版时才提示用户更新。
+- 部署端需避免长期缓存 `index.html` 和 `sw.js`，否则线上版本生效会被延迟。
 
 ## 目录职责
 
@@ -63,6 +70,7 @@ src/
 - 修复故障前阅读完整调用链并确认根因；原因不确定时先补充最小调试信息，不基于猜测修改。
 - 用户可见错误不得只写入控制台；避免吞掉异常后继续展示可能错误的结果。
 - 修改 shadcn-vue 组件时保留其无障碍行为和 `cn()` 类名合并方式。
+- `CalendarDatePicker` 使用 `shallowRef<CalendarDate | null>` 保存公历日期，避免 Vue 深层解包带私有字段的 `CalendarDate` 实例。
 
 ## 依赖约定
 

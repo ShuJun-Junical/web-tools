@@ -29,6 +29,9 @@ importers:
       lunar-typescript:
         specifier: 1.8.6
         version: 1.8.6
+      punycode:
+        specifier: 2.3.1
+        version: 2.3.1
       reka-ui:
         specifier: ^2.10.1
         version: 2.10.1(vue@3.5.39(typescript@6.0.3))

@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest'
 import {
   decodeBase64,
+  decodePunycode,
   decodeUrl,
   encodeBase64,
+  encodePunycode,
   encodeUrl,
   imageDataUrlToBlob,
   looksLikeBase64,
+  looksLikePunycode,
   looksLikeUrlEncoding,
   parseImageDataUrl,
 } from '@/lib/codecs'
@@ -42,6 +45,28 @@ describe('URL 编解码', () => {
     expect(looksLikeUrlEncoding('hello%20world')).toBe(true)
     expect(looksLikeUrlEncoding('%E4%A0')).toBe(true)
     expect(looksLikeUrlEncoding('100% complete')).toBe(false)
+  })
+})
+
+describe('Punycode 编解码', () => {
+  it.each([
+    ['', ''],
+    ['example.com', 'example.com'],
+    ['例子.测试', 'xn--fsqu00a.xn--0zwm56d'],
+    ['user@mañana.com', 'user@xn--maana-pta.com'],
+  ])('往返转换 %j', (unicode, ascii) => {
+    expect(encodePunycode(unicode)).toBe(ascii)
+    expect(decodePunycode(ascii)).toBe(unicode)
+  })
+
+  it('拒绝非法 Punycode', () => {
+    expect(() => decodePunycode('xn--%%%')).toThrow()
+  })
+
+  it('区分 Punycode 和普通域名', () => {
+    expect(looksLikePunycode('xn--fsqu00a.xn--0zwm56d')).toBe(true)
+    expect(looksLikePunycode('user@xn--maana-pta.com')).toBe(true)
+    expect(looksLikePunycode('example.com')).toBe(false)
   })
 })
 

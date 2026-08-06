@@ -1,5 +1,8 @@
+import { toASCII, toUnicode } from 'punycode/punycode.es6.js'
+
 const IMAGE_DATA_URL = /^data:(image\/[a-z0-9.+-]+);base64,([a-z0-9+/]+={0,2})$/i
 const BASE64 = /^[a-z0-9+/]*={0,2}$/i
+const PUNYCODE = /(?:^|[.@\u3002\uFF0E\uFF61])xn--/i
 const URL_ENCODING = /%[0-9a-f]{2}/i
 
 export function encodeBase64(value: string): string {
@@ -33,6 +36,18 @@ export function decodeUrl(value: string): string {
 
 export function looksLikeUrlEncoding(value: string): boolean {
   return URL_ENCODING.test(value)
+}
+
+export function encodePunycode(value: string): string {
+  return toASCII(value)
+}
+
+export function decodePunycode(value: string): string {
+  return toUnicode(value)
+}
+
+export function looksLikePunycode(value: string): boolean {
+  return PUNYCODE.test(value)
 }
 
 export function parseImageDataUrl(value: string) {
