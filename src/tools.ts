@@ -83,6 +83,12 @@ export const toolGroups = [
         component: () => import('@/pages/codec/UrlCodecPage.vue'),
       },
       {
+        path: '/codec/punycode',
+        title: 'Punycode 编解码',
+        description: '在 Unicode 域名与 Punycode ASCII 表示之间转换。',
+        component: () => import('@/pages/codec/PunycodePage.vue'),
+      },
+      {
         path: '/codec/unicode-english',
         title: 'Unicode 英文字体',
         description: '将英文字母和数字转换为多种 Unicode 字符样式。',
