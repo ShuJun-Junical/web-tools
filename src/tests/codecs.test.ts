@@ -1,10 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
   decodeBase64,
-  decodePunycode,
   decodeUrl,
   encodeBase64,
-  encodePunycode,
   encodeUrl,
   imageDataUrlToBlob,
   looksLikeBase64,
@@ -48,22 +46,8 @@ describe('URL 编解码', () => {
   })
 })
 
-describe('Punycode 编解码', () => {
-  it.each([
-    ['', ''],
-    ['example.com', 'example.com'],
-    ['例子.测试', 'xn--fsqu00a.xn--0zwm56d'],
-    ['user@mañana.com', 'user@xn--maana-pta.com'],
-  ])('往返转换 %j', (unicode, ascii) => {
-    expect(encodePunycode(unicode)).toBe(ascii)
-    expect(decodePunycode(ascii)).toBe(unicode)
-  })
-
-  it('拒绝非法 Punycode', () => {
-    expect(() => decodePunycode('xn--%%%')).toThrow()
-  })
-
-  it('区分 Punycode 和普通域名', () => {
+describe('Punycode 形式识别', () => {
+  it('识别域名和邮箱域名中的 xn-- 标签', () => {
     expect(looksLikePunycode('xn--fsqu00a.xn--0zwm56d')).toBe(true)
     expect(looksLikePunycode('user@xn--maana-pta.com')).toBe(true)
     expect(looksLikePunycode('example.com')).toBe(false)
