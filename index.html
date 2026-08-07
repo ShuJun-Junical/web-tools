@@ -3,6 +3,28 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- 百度统计 -->
+    <script>
+      // 仅生产环境统计，避免 localhost 污染数据
+      if (
+        location.hostname !== 'localhost' &&
+        location.hostname !== '127.0.0.1'
+      ) {
+        var _hmt = window._hmt || [];
+
+        (function () {
+          var hm = document.createElement('script');
+          hm.src =
+            'https://hm.baidu.com/hm.js?3add5e728c75290a4952d7b0e0094ca6';
+          hm.async = true;
+
+          var s = document.getElementsByTagName('script')[0];
+          s.parentNode.insertBefore(hm, s);
+        })();
+      }
+    </script>
+
     <meta name="description" content="完全在浏览器本地运行的实用工具集" />
     <meta name="theme-color" content="#171717" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
