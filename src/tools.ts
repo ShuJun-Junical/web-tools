@@ -1,5 +1,16 @@
 export const toolGroups = [
   {
+    title: '实用工具',
+    tools: [
+      {
+        path: '/measure/ruler',
+        title: '屏幕尺子',
+        description: '按设备预设或自定义 PPI 显示可校准的毫米刻度尺。',
+        component: () => import('@/pages/measure/RulerPage.vue'),
+      },
+    ],
+  },
+  {
     title: '周易预测',
     tools: [
       {
