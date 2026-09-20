@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { calculatePpi, cssPixelsPerMillimeter, wholeMillimetersThatFit } from '@/lib/ruler'
+import { calculatePpi, cssPixelsPerMillimeter, snapToLayoutPixels, wholeMillimetersThatFit } from '@/lib/ruler'
 
 describe('ruler calculations', () => {
   it('calculates PPI from resolution and diagonal size', () => {
@@ -13,6 +13,11 @@ describe('ruler calculations', () => {
 
   it('converts physical pixel density to CSS pixels per millimeter', () => {
     expect(cssPixelsPerMillimeter(254, 2)).toBeCloseTo(5, 5)
+  })
+
+  it('snaps a length to the browser layout unit so rounding cannot accumulate', () => {
+    expect(snapToLayoutPixels(cssPixelsPerMillimeter(96, 1)!)).toBe(3.78125)
+    expect(snapToLayoutPixels(2)).toBe(2)
   })
 
   it('only includes complete millimeter intervals that fit the available width', () => {
