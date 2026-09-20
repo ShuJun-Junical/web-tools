@@ -11,6 +11,14 @@ export function cssPixelsPerMillimeter(ppi: number, devicePixelRatio: number) {
   return ppi / 25.4 / devicePixelRatio
 }
 
+/**
+ * 浏览器把布局坐标对齐到固定的分数像素（Chromium、WebKit 为 1/64）。
+ * 每段长度先对齐到同一精度，取整误差就不会沿尺子逐段累积。
+ */
+export function snapToLayoutPixels(pixels: number) {
+  return Math.round(pixels * 64) / 64
+}
+
 export function wholeMillimetersThatFit(availableCssPixels: number, cssPixelsPerMillimeter: number, maximumMillimeters: number) {
   if (!Number.isFinite(availableCssPixels) || !Number.isFinite(cssPixelsPerMillimeter) || !Number.isFinite(maximumMillimeters)
     || availableCssPixels < 0 || cssPixelsPerMillimeter <= 0 || maximumMillimeters < 0) return 0

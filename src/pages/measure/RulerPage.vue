@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useResizeObserver } from '@vueuse/core'
 import { Expand } from '@lucide/vue'
 import ToolPage from '@/components/ToolPage.vue'
 import { Button } from '@/components/ui/button'
@@ -7,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { RadioGroup } from '@/components/ui/radio-group'
 import { Select } from '@/components/ui/select'
-import { calculatePpi, cssPixelsPerMillimeter, wholeMillimetersThatFit } from '@/lib/ruler'
+import { calculatePpi, cssPixelsPerMillimeter, snapToLayoutPixels, wholeMillimetersThatFit } from '@/lib/ruler'
 
 type Source = 'reference' | 'preset' | 'custom' | 'calibration'
 type Edge = 'top' | 'right' | 'bottom' | 'left'
@@ -22,8 +23,8 @@ const calibrationWidth = ref('320')
 const devicePixelRatio = ref(1)
 const isImmersive = ref(false)
 const rulerEdge = ref<Edge>('top')
-const normalRulerViewport = ref<HTMLElement>()
-const normalVisibleMillimeters = ref(0)
+const rulerViewport = ref<HTMLElement>()
+const visibleMillimeters = ref(0)
 
 const sourceItems = [
   { value: 'reference', label: 'CSS 参考值' },
@@ -37,13 +38,13 @@ const presetItems = [
   { value: 'desktop-27-qhd', label: '27 英寸显示器 · 2560×1440 · 108.8 PPI', ppi: 108.79 },
   { value: 'desktop-27-4k', label: '27 英寸显示器 · 3840×2160 · 163.2 PPI', ppi: 163.18 },
   { value: 'macbook-air-13', label: 'MacBook Air 13.6 英寸 · 224 PPI', ppi: 224 },
+  { value: 'macbook-pro-14', label: 'MacBook Pro 14 英寸 · 3024×1964 · 254 PPI', ppi: 254 },
   { value: 'ipad', label: 'iPad（Retina）· 264 PPI', ppi: 264 },
   { value: 'iphone', label: 'iPhone（Super Retina）· 460 PPI', ppi: 460 },
   { value: 'galaxy-s24-ultra', label: 'Samsung Galaxy S24 Ultra · 505 PPI', ppi: 505 },
 ]
 
 const rulerLengthMillimeters = 500
-const rulerMarks = Array.from({ length: rulerLengthMillimeters + 1 }, (_, value) => value)
 const edgeItems: { value: Edge, label: string }[] = [
   { value: 'top', label: '靠上' },
   { value: 'right', label: '靠右' },
@@ -69,19 +70,12 @@ const ppi = computed(() => {
   return customEnteredPpi.value ?? customCalculatedPpi.value
 })
 const pixelsPerMillimeter = computed(() => ppi.value === null ? null : cssPixelsPerMillimeter(ppi.value, devicePixelRatio.value))
+const millimeter = computed(() => snapToLayoutPixels(pixelsPerMillimeter.value ?? 0))
 const rulerStyle = computed(() => ({
-  width: `${(pixelsPerMillimeter.value ?? 0) * rulerLengthMillimeters}px`,
-  '--mark-width': `${pixelsPerMillimeter.value ?? 0}px`,
+  '--ruler-length': `${millimeter.value * visibleMillimeters.value}px`,
+  '--millimeter': `${millimeter.value}px`,
 }))
-const verticalRulerStyle = computed(() => ({
-  height: `${(pixelsPerMillimeter.value ?? 0) * rulerLengthMillimeters}px`,
-  '--mark-width': `${pixelsPerMillimeter.value ?? 0}px`,
-}))
-const normalRulerMarks = computed(() => Array.from({ length: normalVisibleMillimeters.value + 1 }, (_, value) => value))
-const normalRulerStyle = computed(() => ({
-  width: `${(pixelsPerMillimeter.value ?? 0) * normalVisibleMillimeters.value}px`,
-  '--mark-width': `${pixelsPerMillimeter.value ?? 0}px`,
-}))
+const rulerMarks = computed(() => Array.from({ length: visibleMillimeters.value + 1 }, (_, value) => value))
 const isVertical = computed(() => isImmersive.value && ['left', 'right'].includes(rulerEdge.value))
 const availableEdges = computed(() => edgeItems.filter(item => item.value !== rulerEdge.value))
 const ppiLabel = computed(() => ppi.value === null ? '请填写有效的 PPI，或完整填写分辨率和对角线尺寸。' : `${ppi.value.toFixed(1)} PPI`)
@@ -90,33 +84,26 @@ function updateDevicePixelRatio() {
   devicePixelRatio.value = window.devicePixelRatio || 1
 }
 
-function updateNormalVisibleMillimeters() {
-  if (!normalRulerViewport.value || pixelsPerMillimeter.value === null) return
+function updateVisibleMillimeters() {
+  if (!rulerViewport.value || pixelsPerMillimeter.value === null) return
 
-  normalVisibleMillimeters.value = wholeMillimetersThatFit(
-    normalRulerViewport.value.clientWidth,
-    pixelsPerMillimeter.value,
+  visibleMillimeters.value = wholeMillimetersThatFit(
+    isVertical.value ? rulerViewport.value.clientHeight : rulerViewport.value.clientWidth,
+    millimeter.value,
     rulerLengthMillimeters,
   )
 }
 
-let normalRulerResizeObserver: ResizeObserver | undefined
-
 onMounted(() => {
   updateDevicePixelRatio()
   window.addEventListener('resize', updateDevicePixelRatio)
-  updateNormalVisibleMillimeters()
-  if ('ResizeObserver' in window) {
-    normalRulerResizeObserver = new ResizeObserver(updateNormalVisibleMillimeters)
-    if (normalRulerViewport.value) normalRulerResizeObserver.observe(normalRulerViewport.value)
-  }
 })
 
-watch(pixelsPerMillimeter, updateNormalVisibleMillimeters, { flush: 'post' })
+useResizeObserver(rulerViewport, updateVisibleMillimeters)
+watch([rulerViewport, pixelsPerMillimeter, isVertical], updateVisibleMillimeters, { flush: 'post' })
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', updateDevicePixelRatio)
-  normalRulerResizeObserver?.disconnect()
 })
 </script>
 
@@ -181,9 +168,9 @@ onBeforeUnmount(() => {
       </CardHeader>
       <CardContent class="flex flex-col gap-4">
         <div v-if="pixelsPerMillimeter" class="rounded-lg border bg-muted/40 p-4">
-          <div ref="normalRulerViewport" class="overflow-hidden" aria-label="横向尺子">
-            <div class="ruler" :style="normalRulerStyle">
-              <div v-for="mark in normalRulerMarks" :key="mark" class="ruler-mark" :class="{ 'ruler-mark--major': mark % 10 === 0, 'ruler-mark--medium': mark % 5 === 0, 'ruler-mark--start': mark === 0, 'ruler-mark--end': mark === normalVisibleMillimeters }">
+          <div ref="rulerViewport" aria-label="横向尺子">
+            <div class="ruler" :style="rulerStyle">
+              <div v-for="mark in rulerMarks" :key="mark" class="ruler-mark" :class="{ 'ruler-mark--major': mark % 10 === 0, 'ruler-mark--medium': mark % 5 === 0, 'ruler-mark--start': mark === 0, 'ruler-mark--end': mark === visibleMillimeters }">
               <span v-if="mark % 10 === 0" class="ruler-label">{{ mark / 10 }}</span>
               </div>
             </div>
@@ -200,9 +187,9 @@ onBeforeUnmount(() => {
         <CardDescription>当前换算：{{ ppiLabel }}；设备像素比 {{ devicePixelRatio }}。</CardDescription>
       </CardHeader>
       <CardContent class="ruler-focus-content">
-        <div v-if="pixelsPerMillimeter" class="ruler-scroll overflow-x-auto rounded-lg border bg-muted/40 p-4" :class="{ 'ruler-scroll--vertical': isVertical }" :aria-label="isVertical ? '纵向尺子' : '横向尺子'">
-          <div class="ruler" :class="{ 'ruler--vertical': isVertical }" :style="isVertical ? verticalRulerStyle : rulerStyle">
-            <div v-for="mark in rulerMarks" :key="mark" class="ruler-mark" :class="{ 'ruler-mark--major': mark % 10 === 0, 'ruler-mark--medium': mark % 5 === 0, 'ruler-mark--start': mark === 0, 'ruler-mark--end': mark === rulerLengthMillimeters }">
+        <div v-if="pixelsPerMillimeter" ref="rulerViewport" class="ruler-viewport" :aria-label="isVertical ? '纵向尺子' : '横向尺子'">
+          <div class="ruler" :class="{ 'ruler--vertical': isVertical }" :style="rulerStyle">
+            <div v-for="mark in rulerMarks" :key="mark" class="ruler-mark" :class="{ 'ruler-mark--major': mark % 10 === 0, 'ruler-mark--medium': mark % 5 === 0, 'ruler-mark--start': mark === 0, 'ruler-mark--end': mark === visibleMillimeters }">
               <span v-if="mark % 10 === 0" class="ruler-label">{{ mark / 10 }}</span>
             </div>
           </div>
@@ -219,61 +206,65 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .ruler {
+  /* 尺寸常量；--millimeter（1 毫米多少 CSS 像素）和 --ruler-length 由脚本按当前 PPI 写入 */
+  --tick: 0.6rem;
+  --tick-medium: 1rem;
+  --tick-major: 1.5rem;
+  --label-gap: 1.75rem;
   position: relative;
   display: flex;
+  width: var(--ruler-length);
   height: 5rem;
   border-top: 1px solid var(--foreground);
 }
 
+/* --advance 是刻度沿尺子方向占的长度；flex 保证刻度不被压缩，间距始终是 1 毫米 */
 .ruler-mark {
+  --advance: var(--millimeter);
   position: relative;
-  width: var(--mark-width);
-  min-width: var(--mark-width);
-  height: 0.6rem;
+  flex: 0 0 var(--advance);
+  height: var(--tick);
   border-left: 1px solid var(--foreground);
 }
 
-.ruler-mark--medium { height: 1rem; }
-.ruler-mark--major { height: 1.5rem; }
-.ruler-mark--end { width: 0; min-width: 0; }
+.ruler-mark--medium { --tick: var(--tick-medium); }
+.ruler-mark--major { --tick: var(--tick-major); }
+.ruler-mark--end { --advance: 0; }
 
+/* 数字挂在刻线一侧，并沿刻线方向居中；--label-gap 是数字到刻线的距离 */
 .ruler-label {
   position: absolute;
-  top: 1.75rem;
-  left: -0.35rem;
+  top: var(--label-gap);
+  left: 0;
   font-size: 0.75rem;
   line-height: 1;
+  transform: translateX(-50%);
 }
 
-.ruler-mark--start .ruler-label { left: 0.2rem; }
+/* 沉浸模式的尺子紧贴屏幕边缘，起点没有让数字居中的空间，改为贴住刻线 */
+.ruler-focus-mode .ruler-mark--start .ruler-label { transform: none; }
 
+/* 纵向尺子：主轴变竖向，刻度线由宽度决定，刻度线改画在上边框 */
 .ruler--vertical {
   flex-direction: column;
   width: 5rem;
-  height: auto;
+  height: var(--ruler-length);
   border-top: 0;
   border-left: 1px solid var(--foreground);
 }
 
 .ruler--vertical .ruler-mark {
-  width: 0.6rem;
-  min-width: 0;
-  height: var(--mark-width);
-  min-height: var(--mark-width);
+  width: var(--tick);
+  height: auto;
   border-top: 1px solid var(--foreground);
   border-left: 0;
 }
 
-.ruler--vertical .ruler-mark--medium { width: 1rem; }
-.ruler--vertical .ruler-mark--major { width: 1.5rem; }
-.ruler--vertical .ruler-mark--end { height: 0; min-height: 0; }
-
 .ruler--vertical .ruler-label {
-  top: -0.35rem;
-  left: 1.75rem;
+  top: 0;
+  left: var(--label-gap);
+  transform: translateY(-50%);
 }
-
-.ruler--vertical .ruler-mark--start .ruler-label { top: 0.2rem; }
 
 .calibration-card {
   display: grid;
@@ -300,23 +291,19 @@ onBeforeUnmount(() => {
   padding: 0;
 }
 
-.ruler-focus-mode .ruler-scroll {
+.ruler-focus-mode .ruler-viewport {
   position: absolute;
-  padding: 0;
-  border: 0;
-  border-radius: 0;
+  overflow: hidden;
 }
 
-.ruler-focus--top .ruler-scroll,
-.ruler-focus--bottom .ruler-scroll {
+.ruler-focus--top .ruler-viewport,
+.ruler-focus--bottom .ruler-viewport {
   right: 0;
   left: 0;
-  overflow-x: auto;
-  overflow-y: hidden;
 }
 
-.ruler-focus--top .ruler-scroll { top: 0; }
-.ruler-focus--bottom .ruler-scroll { bottom: 0; }
+.ruler-focus--top .ruler-viewport { top: 0; }
+.ruler-focus--bottom .ruler-viewport { bottom: 0; }
 
 .ruler-focus--bottom .ruler {
   align-items: flex-end;
@@ -328,20 +315,18 @@ onBeforeUnmount(() => {
 
 .ruler-focus--bottom .ruler-label {
   top: auto;
-  bottom: 1.75rem;
+  bottom: var(--label-gap);
 }
 
-.ruler-focus--left .ruler-scroll,
-.ruler-focus--right .ruler-scroll {
+.ruler-focus--left .ruler-viewport,
+.ruler-focus--right .ruler-viewport {
   top: 0;
   bottom: 0;
   width: 5rem;
-  overflow-x: hidden;
-  overflow-y: auto;
 }
 
-.ruler-focus--left .ruler-scroll { left: 0; }
-.ruler-focus--right .ruler-scroll { right: 0; }
+.ruler-focus--left .ruler-viewport { left: 0; }
+.ruler-focus--right .ruler-viewport { right: 0; }
 
 .ruler-focus--right .ruler--vertical {
   align-items: flex-end;
@@ -352,9 +337,8 @@ onBeforeUnmount(() => {
 .ruler-focus--right .ruler-mark { align-self: flex-end; }
 
 .ruler-focus--right .ruler-label {
-  right: 1.75rem;
+  right: var(--label-gap);
   left: auto;
-  text-align: right;
 }
 
 .ruler-edge-button,
