@@ -13,8 +13,10 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@6over3/zeroperl-ts": "1.0.10",
     "@internationalized/date": "3.12.2",
     "@lucide/vue": "^1.24.0",
+    "@uswriting/exiftool": "^1.0.9",
     "@vueuse/core": "^14.3.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

@@ -1,5 +1,16 @@
 export const toolGroups = [
   {
+    title: '图片工具',
+    tools: [
+      {
+        path: '/image/exif',
+        title: 'EXIF工具',
+        description: '在浏览器本地查看、编辑和清理图片元数据。',
+        component: () => import('@/pages/image/ExifPage.vue'),
+      },
+    ],
+  },
+  {
     title: '实用工具',
     tools: [
       {

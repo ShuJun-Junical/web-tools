@@ -1,10 +1,13 @@
 import path from 'node:path'
 import tailwindcss from '@tailwindcss/vite'
 import vue from '@vitejs/plugin-vue'
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vitest/config'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  test: {
+    setupFiles: ['src/tests/setup.ts'],
+  },
   plugins: [
     vue(),
     tailwindcss(),
@@ -14,6 +17,22 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,png,svg,woff2}'],
         navigateFallback: null,
         runtimeCaching: [
+          {
+            // zeroperl wasm（约 24MB）供 EXIF 工具懒加载：不进预缓存清单，
+            // 避免所有访客安装 PWA 时立即下载；首次使用时缓存，之后可离线处理图片。
+            urlPattern: ({ url }) => url.pathname.endsWith('.wasm'),
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'wasm',
+              expiration: {
+                maxEntries: 8,
+                maxAgeSeconds: 60 * 60 * 24 * 365,
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
           {
             urlPattern: ({ request }) => request.mode === 'navigate',
             handler: 'NetworkFirst',
