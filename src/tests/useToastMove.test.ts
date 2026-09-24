@@ -1,14 +1,18 @@
 // @vitest-environment jsdom
 import { mount } from '@vue/test-utils';
-import { afterEach, describe, expect, it, vi } from 'vitest';
-import { defineComponent, nextTick, ref } from 'vue';
+import { afterEach, describe, expect, it } from 'vitest';
+import { defineComponent, nextTick, ref, type Ref } from 'vue';
 import { useToastMove } from '@/composables/useToastMove';
 
-function mountMoveTracker(signature: { value: string }) {
+interface Item {
+  id: number;
+}
+
+function mountMoveTracker(items: Ref<Item[]>) {
   return mount(
     defineComponent({
       setup() {
-        useToastMove('.toast-root', () => signature.value);
+        useToastMove('.toast-root', items);
         return () => null;
       },
     })
@@ -19,40 +23,46 @@ function stubTop(el: Element, top: number) {
   el.getBoundingClientRect = () => ({ top }) as DOMRect;
 }
 
+function endTransformTransition(el: Element) {
+  el.dispatchEvent(Object.assign(new Event('transitionend'), { propertyName: 'transform' }));
+}
+
 describe('useToastMove', () => {
   afterEach(() => {
     document.body.innerHTML = '';
-    vi.useRealTimers();
   });
 
-  it('补间被挤动的弹窗：从旧位置过渡到新位置', async () => {
-    document.body.innerHTML = '<li class="toast-root" data-toast-id="a-0"></li>';
+  it('弹窗被挤动时补位移过渡，过渡结束时摘掉过渡类', async () => {
+    document.body.innerHTML = '<li class="toast-root" data-toast-id="1"></li>';
     const el = document.querySelector('.toast-root') as HTMLElement;
     stubTop(el, 100);
 
-    const signature = ref('a-0');
-    const wrapper = mountMoveTracker(signature);
+    const items = ref<Item[]>([{ id: 1 }]);
+    const wrapper = mountMoveTracker(items);
 
     // 队列变更时先记录旧位置，渲染提交后才量到新位置。
-    signature.value = 'a-0,b-0';
+    items.value = [{ id: 2 }, { id: 1 }];
     stubTop(el, 48);
     await nextTick();
 
     expect(el.classList.contains('toast-move')).toBe(true);
     expect(el.style.transform).toBe('');
 
+    endTransformTransition(el);
+    expect(el.classList.contains('toast-move')).toBe(false);
+
     wrapper.unmount();
   });
 
   it('位置没变的弹窗不加过渡', async () => {
-    document.body.innerHTML = '<li class="toast-root" data-toast-id="a-0"></li>';
+    document.body.innerHTML = '<li class="toast-root" data-toast-id="1"></li>';
     const el = document.querySelector('.toast-root') as HTMLElement;
     stubTop(el, 100);
 
-    const signature = ref('a-0');
-    const wrapper = mountMoveTracker(signature);
+    const items = ref<Item[]>([{ id: 1 }]);
+    const wrapper = mountMoveTracker(items);
 
-    signature.value = 'a-0,b-0';
+    items.value = [{ id: 1 }, { id: 2 }];
     await nextTick();
 
     expect(el.classList.contains('toast-move')).toBe(false);
