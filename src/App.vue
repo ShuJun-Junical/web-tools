@@ -25,24 +25,20 @@ const { needRefresh, updateServiceWorker } = useRegisterSW({
     }, updateCheckInterval);
   },
 });
-const pageTitle = computed(
-  () => `${String(route.meta.title ?? '工具站')} | 纾浚的工具站`,
-);
+const pageTitle = computed(() => `${String(route.meta.title ?? '工具站')} | 纾浚的工具站`);
 
 useTitle(pageTitle);
 watch(
   () => route.path,
   () => {
     navigationOpen.value = false;
-  },
+  }
 );
 </script>
 
 <template>
   <div class="min-h-screen bg-muted/30">
-    <header
-      class="fixed inset-x-0 top-0 z-40 h-16 border-b bg-background/95 backdrop-blur"
-    >
+    <header class="fixed inset-x-0 top-0 z-40 h-16 border-b bg-background/95 backdrop-blur">
       <div class="flex h-full items-center gap-3 px-4 lg:px-6">
         <Button
           variant="ghost"
@@ -56,10 +52,7 @@ watch(
           <X v-if="navigationOpen" />
           <Menu v-else />
         </Button>
-        <RouterLink
-          to="/"
-          class="flex items-center gap-2 rounded-md font-semibold"
-        >
+        <RouterLink to="/" class="flex items-center gap-2 rounded-md font-semibold">
           <span
             class="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground"
           >
@@ -85,9 +78,7 @@ watch(
     >
       <nav class="space-y-6">
         <section v-for="group in toolGroups" :key="group.title">
-          <h2
-            class="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
-          >
+          <h2 class="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             {{ group.title }}
           </h2>
           <ul class="space-y-1">
@@ -120,16 +111,10 @@ watch(
       aria-live="polite"
     >
       <p class="text-sm font-medium">工具站已有新版本</p>
-      <p class="mt-1 text-sm text-muted-foreground">
-        更新会刷新当前页面，请先保存正在处理的内容。
-      </p>
+      <p class="mt-1 text-sm text-muted-foreground">更新会刷新当前页面，请先保存正在处理的内容。</p>
       <div class="mt-3 flex justify-end gap-2">
-        <Button variant="ghost" size="sm" @click="needRefresh = false">
-          稍后
-        </Button>
-        <Button size="sm" @click="updateServiceWorker()">
-          立即更新
-        </Button>
+        <Button variant="ghost" size="sm" @click="needRefresh = false"> 稍后 </Button>
+        <Button size="sm" @click="updateServiceWorker()"> 立即更新 </Button>
       </div>
     </section>
   </div>

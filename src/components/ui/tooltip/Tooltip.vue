@@ -1,11 +1,18 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from 'vue'
-import { ref } from 'vue'
-import { TooltipArrow, TooltipContent, TooltipPortal, TooltipProvider, TooltipRoot, TooltipTrigger } from 'reka-ui'
-import { cn } from '@/lib/utils'
+import type { HTMLAttributes } from 'vue';
+import { ref } from 'vue';
+import {
+  TooltipArrow,
+  TooltipContent,
+  TooltipPortal,
+  TooltipProvider,
+  TooltipRoot,
+  TooltipTrigger,
+} from 'reka-ui';
+import { cn } from '@/lib/utils';
 
-defineProps<{ class?: HTMLAttributes['class'] }>()
-const open = ref(false)
+defineProps<{ class?: HTMLAttributes['class'] }>();
+const open = ref(false);
 </script>
 
 <template>

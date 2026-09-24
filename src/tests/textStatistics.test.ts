@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest'
-import { analyzeText } from '@/lib/text-statistics'
+import { describe, expect, it } from 'vitest';
+import { analyzeText } from '@/lib/text-statistics';
 
 describe('文本统计', () => {
   it('处理空文本', () => {
@@ -21,8 +21,8 @@ describe('文本统计', () => {
       codePoints: 0,
       utf16Units: 0,
       utf8Bytes: 0,
-    })
-  })
+    });
+  });
 
   it('按论文、字符和编码口径统计中英混排文本', () => {
     expect(analyzeText('你好，OpenAI 2026！\n👨‍👩‍👧‍👦')).toEqual({
@@ -43,19 +43,19 @@ describe('文本统计', () => {
       codePoints: 23,
       utf16Units: 27,
       utf8Bytes: 49,
-    })
-  })
+    });
+  });
 
   it('处理生僻汉字、组合字符、连字符和空白段落', () => {
-    const result = analyzeText("〇𠀀 café e\u0301 don't state-of-the-art\n \nGPT4")
+    const result = analyzeText("〇𠀀 café e\u0301 don't state-of-the-art\n \nGPT4");
 
-    expect(result.hanCharacters).toBe(2)
-    expect(result.latinWords).toBe(8)
-    expect(result.mixedWords).toBe(10)
-    expect(result.latinLetters).toBe(25)
-    expect(result.digitCharacters).toBe(1)
-    expect(result.lines).toBe(3)
-    expect(result.nonEmptyLines).toBe(2)
-    expect(result.paragraphs).toBe(2)
-  })
-})
+    expect(result.hanCharacters).toBe(2);
+    expect(result.latinWords).toBe(8);
+    expect(result.mixedWords).toBe(10);
+    expect(result.latinLetters).toBe(25);
+    expect(result.digitCharacters).toBe(1);
+    expect(result.lines).toBe(3);
+    expect(result.nonEmptyLines).toBe(2);
+    expect(result.paragraphs).toBe(2);
+  });
+});

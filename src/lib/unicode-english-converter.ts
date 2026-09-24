@@ -130,36 +130,33 @@
  * // 𝐏𝐫𝐨𝐟𝐞𝐬𝐬𝐢𝐨𝐧𝐚𝐥 𝟐𝟎𝟐𝟔
  */
 
-const ASCII_UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-const ASCII_LOWER = "abcdefghijklmnopqrstuvwxyz";
-const ASCII_DIGITS = "0123456789";
+const ASCII_UPPER = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const ASCII_LOWER = 'abcdefghijklmnopqrstuvwxyz';
+const ASCII_DIGITS = '0123456789';
 
 export const UNICODE_STYLE_IDS = [
-  "normal",
-  "bold",
-  "italic",
-  "boldItalic",
-  "script",
-  "boldScript",
-  "fraktur",
-  "doubleStruck",
-  "boldFraktur",
-  "sansSerif",
-  "sansSerifBold",
-  "sansSerifItalic",
-  "sansSerifBoldItalic",
-  "monospace",
-  "fullwidth",
-  "circled",
-  "parenthesized",
+  'normal',
+  'bold',
+  'italic',
+  'boldItalic',
+  'script',
+  'boldScript',
+  'fraktur',
+  'doubleStruck',
+  'boldFraktur',
+  'sansSerif',
+  'sansSerifBold',
+  'sansSerifItalic',
+  'sansSerifBoldItalic',
+  'monospace',
+  'fullwidth',
+  'circled',
+  'parenthesized',
 ] as const;
 
 export type UnicodeStyleId = (typeof UNICODE_STYLE_IDS)[number];
 
-export type UnsupportedDigitBehavior =
-  | "preserve"
-  | "remove"
-  | "error";
+export type UnsupportedDigitBehavior = 'preserve' | 'remove' | 'error';
 
 export interface ConvertUnicodeStyleOptions {
   /**
@@ -201,14 +198,8 @@ export interface UnicodeStyleInfo {
 /**
  * 根据起始码点生成连续字符序列。
  */
-function unicodeRange(
-  startCodePoint: number,
-  length: number,
-): string[] {
-  return Array.from(
-    { length },
-    (_, index) => String.fromCodePoint(startCodePoint + index),
-  );
+function unicodeRange(startCodePoint: number, length: number): string[] {
+  return Array.from({ length }, (_, index) => String.fromCodePoint(startCodePoint + index));
 }
 
 /**
@@ -225,48 +216,48 @@ function toCodePointArray(value: string): string[] {
 const MATHEMATICAL_EXCEPTIONS = {
   italic: {
     lower: {
-      h: "ℎ",
+      h: 'ℎ',
     },
   },
 
   script: {
     upper: {
-      B: "ℬ",
-      E: "ℰ",
-      F: "ℱ",
-      H: "ℋ",
-      I: "ℐ",
-      L: "ℒ",
-      M: "ℳ",
-      R: "ℛ",
+      B: 'ℬ',
+      E: 'ℰ',
+      F: 'ℱ',
+      H: 'ℋ',
+      I: 'ℐ',
+      L: 'ℒ',
+      M: 'ℳ',
+      R: 'ℛ',
     },
 
     lower: {
-      e: "ℯ",
-      g: "ℊ",
-      o: "ℴ",
+      e: 'ℯ',
+      g: 'ℊ',
+      o: 'ℴ',
     },
   },
 
   fraktur: {
     upper: {
-      C: "ℭ",
-      H: "ℌ",
-      I: "ℑ",
-      R: "ℜ",
-      Z: "ℨ",
+      C: 'ℭ',
+      H: 'ℌ',
+      I: 'ℑ',
+      R: 'ℜ',
+      Z: 'ℨ',
     },
   },
 
   doubleStruck: {
     upper: {
-      C: "ℂ",
-      H: "ℍ",
-      N: "ℕ",
-      P: "ℙ",
-      Q: "ℚ",
-      R: "ℝ",
-      Z: "ℤ",
+      C: 'ℂ',
+      H: 'ℍ',
+      N: 'ℕ',
+      P: 'ℙ',
+      Q: 'ℚ',
+      R: 'ℝ',
+      Z: 'ℤ',
     },
   },
 } as const;
@@ -288,15 +279,11 @@ interface CharacterSets {
 /**
  * 创建一套数学字母样式。
  */
-function createMathematicalStyle(
-  options: CreateMathematicalStyleOptions,
-): CharacterSets {
+function createMathematicalStyle(options: CreateMathematicalStyleOptions): CharacterSets {
   const upper = unicodeRange(options.upperStart, 26);
   const lower = unicodeRange(options.lowerStart, 26);
 
-  for (const [asciiCharacter, replacement] of Object.entries(
-    options.upperExceptions ?? {},
-  )) {
+  for (const [asciiCharacter, replacement] of Object.entries(options.upperExceptions ?? {})) {
     const index = asciiCharacter.charCodeAt(0) - 65;
 
     if (index >= 0 && index < 26) {
@@ -304,9 +291,7 @@ function createMathematicalStyle(
     }
   }
 
-  for (const [asciiCharacter, replacement] of Object.entries(
-    options.lowerExceptions ?? {},
-  )) {
+  for (const [asciiCharacter, replacement] of Object.entries(options.lowerExceptions ?? {})) {
     const index = asciiCharacter.charCodeAt(0) - 97;
 
     if (index >= 0 && index < 26) {
@@ -318,9 +303,7 @@ function createMathematicalStyle(
     upper: Object.freeze(upper),
     lower: Object.freeze(lower),
     digits:
-      options.digitStart === undefined
-        ? null
-        : Object.freeze(unicodeRange(options.digitStart, 10)),
+      options.digitStart === undefined ? null : Object.freeze(unicodeRange(options.digitStart, 10)),
   });
 }
 
@@ -330,7 +313,7 @@ function createMathematicalStyle(
 function defineStyle(
   id: UnicodeStyleId,
   name: string,
-  characterSets: CharacterSets,
+  characterSets: CharacterSets
 ): UnicodeStyleDefinition {
   return Object.freeze({
     id,
@@ -342,147 +325,146 @@ function defineStyle(
 }
 
 export const UNICODE_STYLES = Object.freeze({
-  normal: defineStyle("normal", "普通 ASCII", {
+  normal: defineStyle('normal', '普通 ASCII', {
     upper: Object.freeze(toCodePointArray(ASCII_UPPER)),
     lower: Object.freeze(toCodePointArray(ASCII_LOWER)),
     digits: Object.freeze(toCodePointArray(ASCII_DIGITS)),
   }),
 
   bold: defineStyle(
-    "bold",
-    "数学粗体",
+    'bold',
+    '数学粗体',
     createMathematicalStyle({
       upperStart: 0x1d400,
       lowerStart: 0x1d41a,
       digitStart: 0x1d7ce,
-    }),
+    })
   ),
 
   italic: defineStyle(
-    "italic",
-    "数学斜体",
+    'italic',
+    '数学斜体',
     createMathematicalStyle({
       upperStart: 0x1d434,
       lowerStart: 0x1d44e,
       lowerExceptions: MATHEMATICAL_EXCEPTIONS.italic.lower,
-    }),
+    })
   ),
 
   boldItalic: defineStyle(
-    "boldItalic",
-    "数学粗斜体",
+    'boldItalic',
+    '数学粗斜体',
     createMathematicalStyle({
       upperStart: 0x1d468,
       lowerStart: 0x1d482,
-    }),
+    })
   ),
 
   script: defineStyle(
-    "script",
-    "数学花体",
+    'script',
+    '数学花体',
     createMathematicalStyle({
       upperStart: 0x1d49c,
       lowerStart: 0x1d4b6,
       upperExceptions: MATHEMATICAL_EXCEPTIONS.script.upper,
       lowerExceptions: MATHEMATICAL_EXCEPTIONS.script.lower,
-    }),
+    })
   ),
 
   boldScript: defineStyle(
-    "boldScript",
-    "数学粗花体",
+    'boldScript',
+    '数学粗花体',
     createMathematicalStyle({
       upperStart: 0x1d4d0,
       lowerStart: 0x1d4ea,
-    }),
+    })
   ),
 
   fraktur: defineStyle(
-    "fraktur",
-    "数学哥特体",
+    'fraktur',
+    '数学哥特体',
     createMathematicalStyle({
       upperStart: 0x1d504,
       lowerStart: 0x1d51e,
       upperExceptions: MATHEMATICAL_EXCEPTIONS.fraktur.upper,
-    }),
+    })
   ),
 
   doubleStruck: defineStyle(
-    "doubleStruck",
-    "数学双线体",
+    'doubleStruck',
+    '数学双线体',
     createMathematicalStyle({
       upperStart: 0x1d538,
       lowerStart: 0x1d552,
       digitStart: 0x1d7d8,
-      upperExceptions:
-        MATHEMATICAL_EXCEPTIONS.doubleStruck.upper,
-    }),
+      upperExceptions: MATHEMATICAL_EXCEPTIONS.doubleStruck.upper,
+    })
   ),
 
   boldFraktur: defineStyle(
-    "boldFraktur",
-    "数学粗哥特体",
+    'boldFraktur',
+    '数学粗哥特体',
     createMathematicalStyle({
       upperStart: 0x1d56c,
       lowerStart: 0x1d586,
-    }),
+    })
   ),
 
   sansSerif: defineStyle(
-    "sansSerif",
-    "数学无衬线体",
+    'sansSerif',
+    '数学无衬线体',
     createMathematicalStyle({
       upperStart: 0x1d5a0,
       lowerStart: 0x1d5ba,
       digitStart: 0x1d7e2,
-    }),
+    })
   ),
 
   sansSerifBold: defineStyle(
-    "sansSerifBold",
-    "数学无衬线粗体",
+    'sansSerifBold',
+    '数学无衬线粗体',
     createMathematicalStyle({
       upperStart: 0x1d5d4,
       lowerStart: 0x1d5ee,
       digitStart: 0x1d7ec,
-    }),
+    })
   ),
 
   sansSerifItalic: defineStyle(
-    "sansSerifItalic",
-    "数学无衬线斜体",
+    'sansSerifItalic',
+    '数学无衬线斜体',
     createMathematicalStyle({
       upperStart: 0x1d608,
       lowerStart: 0x1d622,
-    }),
+    })
   ),
 
   sansSerifBoldItalic: defineStyle(
-    "sansSerifBoldItalic",
-    "数学无衬线粗斜体",
+    'sansSerifBoldItalic',
+    '数学无衬线粗斜体',
     createMathematicalStyle({
       upperStart: 0x1d63c,
       lowerStart: 0x1d656,
-    }),
+    })
   ),
 
   monospace: defineStyle(
-    "monospace",
-    "数学等宽体",
+    'monospace',
+    '数学等宽体',
     createMathematicalStyle({
       upperStart: 0x1d670,
       lowerStart: 0x1d68a,
       digitStart: 0x1d7f6,
-    }),
+    })
   ),
 
-  fullwidth: defineStyle("fullwidth", "全角字符", {
+  fullwidth: defineStyle('fullwidth', '全角字符', {
     upper: Object.freeze(unicodeRange(0xff21, 26)),
     lower: Object.freeze(unicodeRange(0xff41, 26)),
     digits: Object.freeze(unicodeRange(0xff10, 10)),
   }),
 
-  circled: defineStyle("circled", "带圈字符", {
+  circled: defineStyle('circled', '带圈字符', {
     upper: Object.freeze(unicodeRange(0x24b6, 26)),
     lower: Object.freeze(unicodeRange(0x24d0, 26)),
 
@@ -492,59 +474,37 @@ export const UNICODE_STYLES = Object.freeze({
      * - ⓪：U+24EA
      * - ①-⑨：U+2460-U+2468
      */
-    digits: Object.freeze([
-      "⓪",
-      "①",
-      "②",
-      "③",
-      "④",
-      "⑤",
-      "⑥",
-      "⑦",
-      "⑧",
-      "⑨",
-    ]),
+    digits: Object.freeze(['⓪', '①', '②', '③', '④', '⑤', '⑥', '⑦', '⑧', '⑨']),
   }),
 
-  parenthesized: defineStyle(
-    "parenthesized",
-    "括号字符",
-    {
-      /**
-       * 括号大写字母：
-       * U+1F110-U+1F129
-       *
-       * 例如：
-       * 🄐 🄑 🄒 ... 🄩
-       */
-      upper: Object.freeze(unicodeRange(0x1f110, 26)),
+  parenthesized: defineStyle('parenthesized', '括号字符', {
+    /**
+     * 括号大写字母：
+     * U+1F110-U+1F129
+     *
+     * 例如：
+     * 🄐 🄑 🄒 ... 🄩
+     */
+    upper: Object.freeze(unicodeRange(0x1f110, 26)),
 
-      /**
-       * 括号小写字母：
-       * U+249C-U+24B5
-       *
-       * 例如：
-       * ⒜ ⒝ ⒞ ... ⒵
-       */
-      lower: Object.freeze(unicodeRange(0x249c, 26)),
+    /**
+     * 括号小写字母：
+     * U+249C-U+24B5
+     *
+     * 例如：
+     * ⒜ ⒝ ⒞ ... ⒵
+     */
+    lower: Object.freeze(unicodeRange(0x249c, 26)),
 
-      digits: null,
-    },
-  ),
-} satisfies Readonly<
-  Record<UnicodeStyleId, UnicodeStyleDefinition>
->);
+    digits: null,
+  }),
+} satisfies Readonly<Record<UnicodeStyleId, UnicodeStyleDefinition>>);
 
 /**
  * 判断一个字符串是否是有效的样式 id。
  */
-export function isUnicodeStyleId(
-  value: string,
-): value is UnicodeStyleId {
-  return Object.prototype.hasOwnProperty.call(
-    UNICODE_STYLES,
-    value,
-  );
+export function isUnicodeStyleId(value: string): value is UnicodeStyleId {
+  return Object.prototype.hasOwnProperty.call(UNICODE_STYLES, value);
 }
 
 /**
@@ -576,10 +536,10 @@ export function isUnicodeStyleId(
 export function convertUnicodeStyle(
   input: string,
   styleId: UnicodeStyleId,
-  options: ConvertUnicodeStyleOptions = {},
+  options: ConvertUnicodeStyleOptions = {}
 ): string {
-  if (typeof input !== "string") {
-    throw new TypeError("input 必须是字符串");
+  if (typeof input !== 'string') {
+    throw new TypeError('input 必须是字符串');
   }
 
   const style = UNICODE_STYLES[styleId];
@@ -588,22 +548,17 @@ export function convertUnicodeStyle(
     throw new RangeError(`未知的 Unicode 样式：${styleId}`);
   }
 
-  const {
-    unsupportedDigits = "preserve",
-    fullwidthSpace = false,
-  } = options;
+  const { unsupportedDigits = 'preserve', fullwidthSpace = false } = options;
 
   if (
-    unsupportedDigits !== "preserve" &&
-    unsupportedDigits !== "remove" &&
-    unsupportedDigits !== "error"
+    unsupportedDigits !== 'preserve' &&
+    unsupportedDigits !== 'remove' &&
+    unsupportedDigits !== 'error'
   ) {
-    throw new RangeError(
-      'unsupportedDigits 必须是 "preserve"、"remove" 或 "error"',
-    );
+    throw new RangeError('unsupportedDigits 必须是 "preserve"、"remove" 或 "error"');
   }
 
-  let output = "";
+  let output = '';
 
   for (const character of input) {
     const codePoint = character.codePointAt(0);
@@ -631,28 +586,22 @@ export function convertUnicodeStyle(
       }
 
       switch (unsupportedDigits) {
-        case "preserve":
+        case 'preserve':
           output += character;
           break;
 
-        case "remove":
+        case 'remove':
           break;
 
-        case "error":
-          throw new Error(
-            `样式 "${styleId}" 没有独立的 Unicode 数字字符`,
-          );
+        case 'error':
+          throw new Error(`样式 "${styleId}" 没有独立的 Unicode 数字字符`);
       }
 
       continue;
     }
 
-    if (
-      character === " " &&
-      styleId === "fullwidth" &&
-      fullwidthSpace
-    ) {
-      output += "\u3000";
+    if (character === ' ' && styleId === 'fullwidth' && fullwidthSpace) {
+      output += '\u3000';
       continue;
     }
 
@@ -676,13 +625,10 @@ export function convertUnicodeStyle(
  */
 export function convertToAllStyles(
   input: string,
-  options: ConvertUnicodeStyleOptions = {},
+  options: ConvertUnicodeStyleOptions = {}
 ): Record<UnicodeStyleId, string> {
   return Object.fromEntries(
-    UNICODE_STYLE_IDS.map((styleId) => [
-      styleId,
-      convertUnicodeStyle(input, styleId, options),
-    ]),
+    UNICODE_STYLE_IDS.map((styleId) => [styleId, convertUnicodeStyle(input, styleId, options)])
   ) as Record<UnicodeStyleId, string>;
 }
 
@@ -708,7 +654,7 @@ const REVERSE_CHARACTER_MAP: ReadonlyMap<string, string> = (() => {
     });
   }
 
-  map.set("\u3000", " ");
+  map.set('\u3000', ' ');
 
   return map;
 })();
@@ -731,11 +677,11 @@ const REVERSE_CHARACTER_MAP: ReadonlyMap<string, string> = (() => {
  * // "Professional 2026"
  */
 export function normalizeUnicodeStyle(input: string): string {
-  if (typeof input !== "string") {
-    throw new TypeError("input 必须是字符串");
+  if (typeof input !== 'string') {
+    throw new TypeError('input 必须是字符串');
   }
 
-  let output = "";
+  let output = '';
 
   for (const character of input) {
     output += REVERSE_CHARACTER_MAP.get(character) ?? character;
@@ -757,13 +703,9 @@ export function listUnicodeStyles(): UnicodeStyleInfo[] {
       supportsUppercase: true,
       supportsLowercase: true,
       supportsDigits: style.digits !== null,
-      example: convertUnicodeStyle(
-        "Professional 2026",
-        styleId,
-        {
-          fullwidthSpace: styleId === "fullwidth",
-        },
-      ),
+      example: convertUnicodeStyle('Professional 2026', styleId, {
+        fullwidthSpace: styleId === 'fullwidth',
+      }),
     };
   });
 }

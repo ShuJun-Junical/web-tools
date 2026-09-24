@@ -48,7 +48,8 @@ function u32le(bytes: Uint8Array, offset: number) {
 function imageFormat(bytes: Uint8Array): ImageFormat {
   if (bytes.length >= 2 && bytes[0] === 0xff && bytes[1] === 0xd8) return 'jpeg';
   if (pngSignature.every((value, index) => bytes[index] === value)) return 'png';
-  if (bytes.length >= 12 && startsWith(bytes, 0, 'RIFF') && startsWith(bytes, 8, 'WEBP')) return 'webp';
+  if (bytes.length >= 12 && startsWith(bytes, 0, 'RIFF') && startsWith(bytes, 8, 'WEBP'))
+    return 'webp';
   throw new Error('仅支持 JPEG、PNG 和 WebP 图片。');
 }
 
@@ -59,7 +60,19 @@ function inspectJpeg(bytes: Uint8Array): ImageStructure {
   let unsupportedMultiImage = false;
   let index = 0;
 
-  blocks.push({ id: 'jpeg-0', kind: 'SOI', label: 'JPEG 图像起点', start: 0, end: 2, dataStart: 0, dataEnd: 2, image: true, display: false, known: true, signed: false });
+  blocks.push({
+    id: 'jpeg-0',
+    kind: 'SOI',
+    label: 'JPEG 图像起点',
+    start: 0,
+    end: 2,
+    dataStart: 0,
+    dataEnd: 2,
+    image: true,
+    display: false,
+    known: true,
+    signed: false,
+  });
 
   while (offset < bytes.length) {
     if (bytes[offset] !== 0xff) throw new Error('JPEG 区段结构不完整。');
@@ -69,12 +82,36 @@ function inspectJpeg(bytes: Uint8Array): ImageStructure {
     if (marker === undefined || marker === 0x00) throw new Error('JPEG 标记无效。');
     const kind = `0xFF${marker.toString(16).toUpperCase().padStart(2, '0')}`;
     if (marker === 0xd9) {
-      blocks.push({ id: `jpeg-${++index}`, kind: 'EOI', label: 'JPEG 图像终点', start, end: offset, dataStart: start, dataEnd: offset, image: true, display: false, known: true, signed: false });
+      blocks.push({
+        id: `jpeg-${++index}`,
+        kind: 'EOI',
+        label: 'JPEG 图像终点',
+        start,
+        end: offset,
+        dataStart: start,
+        dataEnd: offset,
+        image: true,
+        display: false,
+        known: true,
+        signed: false,
+      });
       ended = true;
       break;
     }
     if (marker === 0x01 || (marker >= 0xd0 && marker <= 0xd7)) {
-      blocks.push({ id: `jpeg-${++index}`, kind, label: kind, start, end: offset, dataStart: start, dataEnd: offset, image: true, display: false, known: true, signed: false });
+      blocks.push({
+        id: `jpeg-${++index}`,
+        kind,
+        label: kind,
+        start,
+        end: offset,
+        dataStart: start,
+        dataEnd: offset,
+        image: true,
+        display: false,
+        known: true,
+        signed: false,
+      });
       continue;
     }
     if (offset + 2 > bytes.length) throw new Error('JPEG 区段长度缺失。');
@@ -86,9 +123,15 @@ function inspectJpeg(bytes: Uint8Array): ImageStructure {
 
     if (marker === 0xda) {
       while (offset < bytes.length - 1) {
-        if (bytes[offset] !== 0xff) { offset++; continue; }
+        if (bytes[offset] !== 0xff) {
+          offset++;
+          continue;
+        }
         const next = bytes[offset + 1];
-        if (next === 0x00 || next === 0xff || (next >= 0xd0 && next <= 0xd7)) { offset += 2; continue; }
+        if (next === 0x00 || next === 0xff || (next >= 0xd0 && next <= 0xd7)) {
+          offset += 2;
+          continue;
+        }
         break;
       }
     }
@@ -96,21 +139,53 @@ function inspectJpeg(bytes: Uint8Array): ImageStructure {
     const app = marker >= 0xe0 && marker <= 0xef;
     const comment = marker === 0xfe;
     const mpf = marker === 0xe2 && startsWith(bytes, dataStart, 'MPF\0');
-    const hdr = marker === 0xeb && (startsWith(bytes, dataStart, 'HDR') || startsWith(bytes, dataStart, 'JUMBF'));
+    const hdr =
+      marker === 0xeb &&
+      (startsWith(bytes, dataStart, 'HDR') || startsWith(bytes, dataStart, 'JUMBF'));
     unsupportedMultiImage ||= mpf || hdr;
-    const display = (marker === 0xe0 && startsWith(bytes, dataStart, 'JFIF\0')) ||
+    const display =
+      (marker === 0xe0 && startsWith(bytes, dataStart, 'JFIF\0')) ||
       (marker === 0xe2 && startsWith(bytes, dataStart, 'ICC_PROFILE\0')) ||
       (marker === 0xee && startsWith(bytes, dataStart, 'Adobe'));
-    const known = !app || comment || display || marker === 0xe1 || marker === 0xed || mpf ||
+    const known =
+      !app ||
+      comment ||
+      display ||
+      marker === 0xe1 ||
+      marker === 0xed ||
+      mpf ||
       (marker === 0xeb && startsWith(bytes, dataStart, 'JUMBF'));
     const signed = marker === 0xeb && startsWith(bytes, dataStart, 'JUMBF');
-    blocks.push({ id: `jpeg-${++index}`, kind: app ? `APP${marker - 0xe0}` : comment ? 'COM' : kind,
+    blocks.push({
+      id: `jpeg-${++index}`,
+      kind: app ? `APP${marker - 0xe0}` : comment ? 'COM' : kind,
       label: app ? `JPEG APP${marker - 0xe0}` : comment ? 'JPEG 注释' : kind,
-      start, end: offset, dataStart, dataEnd, image: !app && !comment, display, known, signed });
+      start,
+      end: offset,
+      dataStart,
+      dataEnd,
+      image: !app && !comment,
+      display,
+      known,
+      signed,
+    });
   }
 
   if (!ended) throw new Error('JPEG 缺少图像终止标记。');
-  if (offset < bytes.length) blocks.push({ id: `jpeg-${++index}`, kind: 'Trailer', label: 'JPEG 尾部数据', start: offset, end: bytes.length, dataStart: offset, dataEnd: bytes.length, image: false, display: false, known: false, signed: false });
+  if (offset < bytes.length)
+    blocks.push({
+      id: `jpeg-${++index}`,
+      kind: 'Trailer',
+      label: 'JPEG 尾部数据',
+      start: offset,
+      end: bytes.length,
+      dataStart: offset,
+      dataEnd: bytes.length,
+      image: false,
+      display: false,
+      known: false,
+      signed: false,
+    });
   return { format: 'jpeg', blocks, animated: false, unsupportedMultiImage };
 }
 
@@ -125,18 +200,45 @@ function inspectPng(bytes: Uint8Array): ImageStructure {
     const end = offset + 12 + length;
     if (end > bytes.length) throw new Error('PNG 数据块长度无效。');
     const kind = text(bytes, offset + 4, offset + 8);
-    const unknownCritical = kind.charCodeAt(0) >= 65 && kind.charCodeAt(0) <= 90 && !pngImage.has(kind);
+    const unknownCritical =
+      kind.charCodeAt(0) >= 65 && kind.charCodeAt(0) <= 90 && !pngImage.has(kind);
     if (unknownCritical) throw new Error(`暂不支持 PNG 关键块 ${kind}。`);
     const image = pngImage.has(kind);
     animated ||= kind === 'acTL';
-    blocks.push({ id: `png-${++index}`, kind, label: `PNG ${kind}`, start: offset, end,
-      dataStart: offset + 8, dataEnd: end - 4, image, display: pngDisplay.has(kind),
-      known: image || pngDisplay.has(kind) || pngMetadata.has(kind), signed: kind === 'caBX' });
+    blocks.push({
+      id: `png-${++index}`,
+      kind,
+      label: `PNG ${kind}`,
+      start: offset,
+      end,
+      dataStart: offset + 8,
+      dataEnd: end - 4,
+      image,
+      display: pngDisplay.has(kind),
+      known: image || pngDisplay.has(kind) || pngMetadata.has(kind),
+      signed: kind === 'caBX',
+    });
     offset = end;
-    if (kind === 'IEND') { ended = true; break; }
+    if (kind === 'IEND') {
+      ended = true;
+      break;
+    }
   }
   if (!ended) throw new Error('PNG 缺少 IEND 数据块。');
-  if (offset < bytes.length) blocks.push({ id: `png-${++index}`, kind: 'Trailer', label: 'PNG 尾部数据', start: offset, end: bytes.length, dataStart: offset, dataEnd: bytes.length, image: false, display: false, known: false, signed: false });
+  if (offset < bytes.length)
+    blocks.push({
+      id: `png-${++index}`,
+      kind: 'Trailer',
+      label: 'PNG 尾部数据',
+      start: offset,
+      end: bytes.length,
+      dataStart: offset,
+      dataEnd: bytes.length,
+      image: false,
+      display: false,
+      known: false,
+      signed: false,
+    });
   return { format: 'png', blocks, animated, unsupportedMultiImage: false };
 }
 
@@ -154,25 +256,55 @@ function inspectWebp(bytes: Uint8Array): ImageStructure {
     if (end > declaredEnd) throw new Error('WebP 数据块长度无效。');
     const image = webpImage.has(kind);
     animated ||= kind === 'ANIM' || kind === 'ANMF';
-    blocks.push({ id: `webp-${++index}`, kind, label: `WebP ${kind.trim()}`, start: offset, end,
-      dataStart: offset + 8, dataEnd: offset + 8 + length, image, display: kind === 'ICCP',
-      known: image || kind === 'ICCP' || kind === 'EXIF' || kind === 'XMP ', signed: false });
+    blocks.push({
+      id: `webp-${++index}`,
+      kind,
+      label: `WebP ${kind.trim()}`,
+      start: offset,
+      end,
+      dataStart: offset + 8,
+      dataEnd: offset + 8 + length,
+      image,
+      display: kind === 'ICCP',
+      known: image || kind === 'ICCP' || kind === 'EXIF' || kind === 'XMP ',
+      signed: false,
+    });
     offset = end;
   }
   if (offset !== declaredEnd) throw new Error('WebP 数据块边界无效。');
-  if (declaredEnd < bytes.length) blocks.push({ id: `webp-${++index}`, kind: 'Trailer', label: 'WebP 尾部数据', start: declaredEnd, end: bytes.length, dataStart: declaredEnd, dataEnd: bytes.length, image: false, display: false, known: false, signed: false });
+  if (declaredEnd < bytes.length)
+    blocks.push({
+      id: `webp-${++index}`,
+      kind: 'Trailer',
+      label: 'WebP 尾部数据',
+      start: declaredEnd,
+      end: bytes.length,
+      dataStart: declaredEnd,
+      dataEnd: bytes.length,
+      image: false,
+      display: false,
+      known: false,
+      signed: false,
+    });
   return { format: 'webp', blocks, animated, unsupportedMultiImage: false };
 }
 
 export function inspectImage(bytes: Uint8Array): ImageStructure {
   const format = imageFormat(bytes);
-  return format === 'jpeg' ? inspectJpeg(bytes) : format === 'png' ? inspectPng(bytes) : inspectWebp(bytes);
+  return format === 'jpeg'
+    ? inspectJpeg(bytes)
+    : format === 'png'
+      ? inspectPng(bytes)
+      : inspectWebp(bytes);
 }
 
 function concat(parts: Uint8Array[]) {
   const result = new Uint8Array(parts.reduce((size, part) => size + part.length, 0));
   let offset = 0;
-  for (const part of parts) { result.set(part, offset); offset += part.length; }
+  for (const part of parts) {
+    result.set(part, offset);
+    offset += part.length;
+  }
   return result;
 }
 
@@ -182,32 +314,74 @@ function setU32le(bytes: Uint8Array, offset: number, value: number) {
 
 function fixWebpFlags(bytes: Uint8Array) {
   const structure = inspectWebp(bytes);
-  const vp8x = structure.blocks.find(block => block.kind === 'VP8X');
+  const vp8x = structure.blocks.find((block) => block.kind === 'VP8X');
   if (!vp8x) return bytes;
-  const kinds = new Set(structure.blocks.map(block => block.kind));
+  const kinds = new Set(structure.blocks.map((block) => block.kind));
   const result = bytes.slice();
-  result[vp8x.dataStart] = (result[vp8x.dataStart] & ~(0x20 | 0x08 | 0x04)) |
-    (kinds.has('ICCP') ? 0x20 : 0) | (kinds.has('EXIF') ? 0x08 : 0) | (kinds.has('XMP ') ? 0x04 : 0);
+  result[vp8x.dataStart] =
+    (result[vp8x.dataStart] & ~(0x20 | 0x08 | 0x04)) |
+    (kinds.has('ICCP') ? 0x20 : 0) |
+    (kinds.has('EXIF') ? 0x08 : 0) |
+    (kinds.has('XMP ') ? 0x04 : 0);
   return result;
 }
 
 function jpegOrientationBlock(orientation: number) {
   const result = Uint8Array.of(
-    0xff, 0xe1, 0, 34,
-    0x45, 0x78, 0x69, 0x66, 0, 0,
-    0x49, 0x49, 42, 0, 8, 0, 0, 0,
-    1, 0, 0x12, 1, 3, 0, 1, 0, 0, 0,
-    orientation, 0, 0, 0,
-    0, 0, 0, 0,
+    0xff,
+    0xe1,
+    0,
+    34,
+    0x45,
+    0x78,
+    0x69,
+    0x66,
+    0,
+    0,
+    0x49,
+    0x49,
+    42,
+    0,
+    8,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0x12,
+    1,
+    3,
+    0,
+    1,
+    0,
+    0,
+    0,
+    orientation,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0
   );
   return result;
 }
 
 /** JPEG 段序约束：EXIF APP1 必须位于 JFIF APP0 之后，否则 ExifTool 等按规范扫描的解码器会整体跳过它。 */
-function jpegParts(kept: ImageBlock[], bytes: Uint8Array, mode: 'normal' | 'strong', orientation?: number | null) {
-  const inject = mode === 'normal' && orientation && orientation >= 1 && orientation <= 8
-    ? jpegOrientationBlock(orientation) : null;
-  const injectAfter = inject ? kept.find(block => block.kind === 'APP0' && !block.image) ?? kept[0] : null;
+function jpegParts(
+  kept: ImageBlock[],
+  bytes: Uint8Array,
+  mode: 'normal' | 'strong',
+  orientation?: number | null
+) {
+  const inject =
+    mode === 'normal' && orientation && orientation >= 1 && orientation <= 8
+      ? jpegOrientationBlock(orientation)
+      : null;
+  const injectAfter = inject
+    ? (kept.find((block) => block.kind === 'APP0' && !block.image) ?? kept[0])
+    : null;
   const parts: Uint8Array[] = [];
   for (const block of kept) {
     parts.push(bytes.subarray(block.start, block.end));
@@ -216,13 +390,22 @@ function jpegParts(kept: ImageBlock[], bytes: Uint8Array, mode: 'normal' | 'stro
   return parts;
 }
 
-export function clearImageMetadata(bytes: Uint8Array, mode: 'normal' | 'strong', orientation?: number) {
+export function clearImageMetadata(
+  bytes: Uint8Array,
+  mode: 'normal' | 'strong',
+  orientation?: number
+) {
   const structure = inspectImage(bytes);
   if (structure.unsupportedMultiImage) throw new Error('此多图 JPEG 变体暂不支持清理导出。');
-  const kept = structure.blocks.filter(block => block.image || mode === 'normal' && (block.display || !block.known));
-  const parts = structure.format === 'png' ? [bytes.subarray(0, 8), ...kept.map(block => bytes.subarray(block.start, block.end))]
-    : structure.format === 'webp' ? [bytes.subarray(0, 12), ...kept.map(block => bytes.subarray(block.start, block.end))]
-      : jpegParts(kept, bytes, mode, orientation);
+  const kept = structure.blocks.filter(
+    (block) => block.image || (mode === 'normal' && (block.display || !block.known))
+  );
+  const parts =
+    structure.format === 'png'
+      ? [bytes.subarray(0, 8), ...kept.map((block) => bytes.subarray(block.start, block.end))]
+      : structure.format === 'webp'
+        ? [bytes.subarray(0, 12), ...kept.map((block) => bytes.subarray(block.start, block.end))]
+        : jpegParts(kept, bytes, mode, orientation);
   let result: Uint8Array = concat(parts);
   if (structure.format === 'webp') {
     setU32le(result, 4, result.length - 8);
@@ -230,7 +413,8 @@ export function clearImageMetadata(bytes: Uint8Array, mode: 'normal' | 'strong',
   }
   const output = inspectImage(result);
   if (!sameImageData(bytes, result)) throw new Error('图像数据校验失败，未生成清理结果。');
-  if (mode === 'strong' && output.blocks.some(block => !block.image)) throw new Error('仍有附加数据，未生成强力清理结果。');
+  if (mode === 'strong' && output.blocks.some((block) => !block.image))
+    throw new Error('仍有附加数据，未生成强力清理结果。');
   return result;
 }
 
@@ -238,13 +422,21 @@ export function sameImageData(before: Uint8Array, after: Uint8Array) {
   const original = inspectImage(before);
   const current = inspectImage(after);
   if (original.format !== current.format) return false;
-  const imageParts = (bytes: Uint8Array, structure: ImageStructure) => structure.blocks
-    .filter(block => block.image && block.kind !== 'VP8X')
-    .map(block => ({ kind: block.kind, bytes: bytes.subarray(block.start, block.end) }));
+  const imageParts = (bytes: Uint8Array, structure: ImageStructure) =>
+    structure.blocks
+      .filter((block) => block.image && block.kind !== 'VP8X')
+      .map((block) => ({ kind: block.kind, bytes: bytes.subarray(block.start, block.end) }));
   const left = imageParts(before, original);
   const right = imageParts(after, current);
-  return left.length === right.length && left.every((part, index) => part.kind === right[index].kind &&
-    part.bytes.length === right[index].bytes.length && part.bytes.every((value, byteIndex) => value === right[index].bytes[byteIndex]));
+  return (
+    left.length === right.length &&
+    left.every(
+      (part, index) =>
+        part.kind === right[index].kind &&
+        part.bytes.length === right[index].bytes.length &&
+        part.bytes.every((value, byteIndex) => value === right[index].bytes[byteIndex])
+    )
+  );
 }
 
 function crc32(bytes: Uint8Array) {
@@ -258,8 +450,9 @@ function crc32(bytes: Uint8Array) {
 
 export function parseHex(hex: string) {
   const clean = hex.replace(/\s/g, '');
-  if (clean.length % 2 || /[^0-9a-f]/i.test(clean)) throw new Error('请输入偶数位的十六进制字节，仅包含 0-9 与 a-f。');
-  return Uint8Array.from(clean.match(/../g)?.map(pair => parseInt(pair, 16)) ?? []);
+  if (clean.length % 2 || /[^0-9a-f]/i.test(clean))
+    throw new Error('请输入偶数位的十六进制字节，仅包含 0-9 与 a-f。');
+  return Uint8Array.from(clean.match(/../g)?.map((pair) => parseInt(pair, 16)) ?? []);
 }
 
 /** 就地校验用：返回错误信息，空字符串表示通过。 */
@@ -303,7 +496,11 @@ function webpExtensionKind(kindInput: string) {
 }
 
 /** 新增原始块前端的组合校验：块类型与负载长度。返回错误信息，空字符串表示通过。 */
-export function newBlockValidationError(format: ImageFormat, kindInput: string, hex: string): string {
+export function newBlockValidationError(
+  format: ImageFormat,
+  kindInput: string,
+  hex: string
+): string {
   const hexError = hexValidationError(hex);
   if (hexError) return hexError;
   try {
@@ -325,8 +522,10 @@ export const supportedImageExtensions = ['.jpg', '.jpeg', '.png', '.webp'];
 export const supportedImageMimeTypes = ['image/jpeg', 'image/png', 'image/webp'];
 
 export function isSupportedImageFile(file: File) {
-  return supportedImageExtensions.some(extension => file.name.toLowerCase().endsWith(extension)) ||
-    supportedImageMimeTypes.includes(file.type);
+  return (
+    supportedImageExtensions.some((extension) => file.name.toLowerCase().endsWith(extension)) ||
+    supportedImageMimeTypes.includes(file.type)
+  );
 }
 
 function pngChunkBytes(type: Uint8Array, payload: Uint8Array) {
@@ -334,7 +533,10 @@ function pngChunkBytes(type: Uint8Array, payload: Uint8Array) {
   new DataView(chunk.buffer).setUint32(0, payload.length);
   chunk.set(type, 4);
   chunk.set(payload, 8);
-  new DataView(chunk.buffer).setUint32(chunk.length - 4, crc32(chunk.subarray(4, chunk.length - 4)));
+  new DataView(chunk.buffer).setUint32(
+    chunk.length - 4,
+    crc32(chunk.subarray(4, chunk.length - 4))
+  );
   return chunk;
 }
 
@@ -347,23 +549,40 @@ function webpChunkBytes(type: Uint8Array, payload: Uint8Array) {
 }
 
 interface ContainerEditOps {
-  editBlock(structure: ImageStructure, bytes: Uint8Array, block: ImageBlock, payload: Uint8Array): Uint8Array;
-  addBlock(structure: ImageStructure, bytes: Uint8Array, kindInput: string, payload: Uint8Array): Uint8Array;
+  editBlock(
+    structure: ImageStructure,
+    bytes: Uint8Array,
+    block: ImageBlock,
+    payload: Uint8Array
+  ): Uint8Array;
+  addBlock(
+    structure: ImageStructure,
+    bytes: Uint8Array,
+    kindInput: string,
+    payload: Uint8Array
+  ): Uint8Array;
 }
 
 const containerOps: Record<ImageFormat, ContainerEditOps> = {
   jpeg: {
     editBlock(structure, bytes, block, payload) {
       if (payload.length > 65533) throw new Error('JPEG 元数据区段超过长度上限。');
-      const replacement = concat([bytes.subarray(block.start, block.dataStart - 2),
-        Uint8Array.of((payload.length + 2) >> 8, (payload.length + 2) & 255), payload]);
+      const replacement = concat([
+        bytes.subarray(block.start, block.dataStart - 2),
+        Uint8Array.of((payload.length + 2) >> 8, (payload.length + 2) & 255),
+        payload,
+      ]);
       return concat([bytes.subarray(0, block.start), replacement, bytes.subarray(block.end)]);
     },
     addBlock(structure, bytes, kindInput, payload) {
       const marker = jpegInsertMarker(kindInput);
       if (payload.length > 65533) throw new Error('JPEG 元数据区段超过长度上限。');
-      const replacement = concat([Uint8Array.of(0xff, marker, (payload.length + 2) >> 8, (payload.length + 2) & 255), payload]);
-      const position = structure.blocks.find(block => block.kind === '0xFFDA')?.start ?? bytes.length - 2;
+      const replacement = concat([
+        Uint8Array.of(0xff, marker, (payload.length + 2) >> 8, (payload.length + 2) & 255),
+        payload,
+      ]);
+      const position =
+        structure.blocks.find((block) => block.kind === '0xFFDA')?.start ?? bytes.length - 2;
       return concat([bytes.subarray(0, position), replacement, bytes.subarray(position)]);
     },
   },
@@ -374,8 +593,14 @@ const containerOps: Record<ImageFormat, ContainerEditOps> = {
     },
     addBlock(structure, bytes, kindInput, payload) {
       const kind = pngAuxiliaryKind(kindInput);
-      const position = structure.blocks.find(block => block.kind === 'PLTE' || block.kind === 'IDAT')?.start ?? bytes.length - 12;
-      return concat([bytes.subarray(0, position), pngChunkBytes(encoder.encode(kind), payload), bytes.subarray(position)]);
+      const position =
+        structure.blocks.find((block) => block.kind === 'PLTE' || block.kind === 'IDAT')?.start ??
+        bytes.length - 12;
+      return concat([
+        bytes.subarray(0, position),
+        pngChunkBytes(encoder.encode(kind), payload),
+        bytes.subarray(position),
+      ]);
     },
   },
   webp: {
@@ -388,9 +613,17 @@ const containerOps: Record<ImageFormat, ContainerEditOps> = {
     addBlock(structure, bytes, kindInput, payload) {
       const kind = webpExtensionKind(kindInput);
       const last = structure.blocks.at(-1);
-      const position = kind === 'ICCP' ? (structure.blocks.find(block => block.kind === 'VP8X')?.end ?? 12)
-        : last?.kind === 'Trailer' ? last.start : last?.end ?? bytes.length;
-      const result = concat([bytes.subarray(0, position), webpChunkBytes(encoder.encode(kind), payload), bytes.subarray(position)]);
+      const position =
+        kind === 'ICCP'
+          ? (structure.blocks.find((block) => block.kind === 'VP8X')?.end ?? 12)
+          : last?.kind === 'Trailer'
+            ? last.start
+            : (last?.end ?? bytes.length);
+      const result = concat([
+        bytes.subarray(0, position),
+        webpChunkBytes(encoder.encode(kind), payload),
+        bytes.subarray(position),
+      ]);
       setU32le(result, 4, result.length - 8);
       return fixWebpFlags(result);
     },
@@ -399,7 +632,7 @@ const containerOps: Record<ImageFormat, ContainerEditOps> = {
 
 export function editMetadataBlock(bytes: Uint8Array, id: string, hex: string) {
   const structure = inspectImage(bytes);
-  const block = structure.blocks.find(item => item.id === id && !item.image);
+  const block = structure.blocks.find((item) => item.id === id && !item.image);
   if (!block || block.kind === 'Trailer') throw new Error('只能编辑可识别边界的元数据块。');
   return containerOps[structure.format].editBlock(structure, bytes, block, parseHex(hex));
 }

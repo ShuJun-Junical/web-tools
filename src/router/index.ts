@@ -1,5 +1,5 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import { toolGroups } from '@/tools'
+import { createRouter, createWebHistory } from 'vue-router';
+import { toolGroups } from '@/tools';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -10,8 +10,8 @@ const router = createRouter({
       component: () => import('@/pages/HomePage.vue'),
       meta: { title: '首页' },
     },
-    ...toolGroups.flatMap(group =>
-      group.tools.map(tool => ({
+    ...toolGroups.flatMap((group) =>
+      group.tools.map((tool) => ({
         path: tool.path,
         component: tool.component,
         meta: {
@@ -19,7 +19,7 @@ const router = createRouter({
           category: group.title,
           description: tool.description,
         },
-      })),
+      }))
     ),
     {
       path: '/:pathMatch(.*)*',
@@ -29,6 +29,6 @@ const router = createRouter({
     },
   ],
   scrollBehavior: () => ({ top: 0 }),
-})
+});
 
-export default router
+export default router;

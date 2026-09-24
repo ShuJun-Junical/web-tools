@@ -22,10 +22,15 @@ export interface ExifResult {
 export type ExifOperation =
   | { type: 'clear'; mode: 'normal' | 'strong' }
   | { type: 'write'; tag: string; value?: string }
-  | { type: 'add'; group: string; identifier: string; dataType: string; value: string; namespaceUri?: string }
+  | {
+      type: 'add';
+      group: string;
+      identifier: string;
+      dataType: string;
+      value: string;
+      namespaceUri?: string;
+    }
   | { type: 'raw'; blockId: string; hex: string }
   | { type: 'addBlock'; kind: string; hex: string };
 
-export type ExifAction =
-  & (ExifOperation | { type: 'inspect' })
-  & { file: File; original: File };
+export type ExifAction = (ExifOperation | { type: 'inspect' }) & { file: File; original: File };

@@ -19,17 +19,29 @@ const info = computed(() => fieldInfoFor(props.field.name));
         {{ info?.label ?? field.name }}
         <Tooltip v-if="info?.description">
           <template #trigger>
-            <button type="button" class="shrink-0 text-muted-foreground hover:text-foreground"
-              :aria-label="`什么是「${info?.label}」`">
+            <button
+              type="button"
+              class="shrink-0 text-muted-foreground hover:text-foreground"
+              :aria-label="`什么是「${info?.label}」`"
+            >
               <CircleHelp class="size-3.5" aria-hidden="true" />
             </button>
           </template>
           {{ info?.description }}
         </Tooltip>
       </p>
-      <p class="truncate font-mono text-xs text-muted-foreground/70" :title="field.key">{{ field.key }}</p>
+      <p class="truncate font-mono text-xs text-muted-foreground/70" :title="field.key">
+        {{ field.key }}
+      </p>
       <p class="truncate text-sm" :title="field.value">{{ field.value }}</p>
-      <Button variant="ghost" size="sm" class="hover:text-destructive" :disabled="busy || locked" @click="emit('remove')">删除</Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        class="hover:text-destructive"
+        :disabled="busy || locked"
+        @click="emit('remove')"
+        >删除</Button
+      >
     </div>
   </div>
 </template>
