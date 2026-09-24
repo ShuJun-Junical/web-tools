@@ -6,7 +6,7 @@ import { useToastMove } from '@/composables/useToastMove';
 const { toasts, closeToast, handleToastLeft } = useToast();
 
 // 宿主自身不会因队列变化 re-render（插槽依赖被 reka 的 ToastViewport 收集），
-// 所以位移补间挂在队列签名上，不能用 onBeforeUpdate/onUpdated。
+// 所以位移补间挂在队列变化上，不能用 onBeforeUpdate/onUpdated。
 useToastMove('.toast-root', toasts);
 
 /** 出场动画放完才出队；入场动画结束时 open 还是 true，走到这里直接跳过 */
@@ -53,19 +53,20 @@ function onToastAnimationEnd(toast: ToastItem) {
   animation: toast-out 250ms ease-in forwards;
 }
 
-/* 与 toast-in 同曲线同时长：两者都在写 transform，同帧冲突时 CSS animation 会盖过 transition，
-   只有曲线一致才能保证"新弹窗上浮"和"旧弹窗上移"同步、中途不互相遮挡 */
+/* 与 toast-in 同曲线同时长，保证"新弹窗上浮"和"旧弹窗上移"同步；
+   两者分别写 transform 和 translate，同帧是叠加关系而不是互相覆盖 */
 .toast-move {
   transition: transform 400ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* 入场位移 40px 是按单行弹窗（高 44px）和槽位间距（gap-2 = 8px）定的：
-   它小于弹窗高度，起手几帧会和正在上移的上一条最多重叠 4px，同帧 opacity 接近 0 所以看不出来。
-   改字号、padding 或 gap 后要复核这个数（位移 ≥ 弹窗高度即可全程不重叠） */
+/* 入场位移取"一条弹窗高度 + 槽位间距"（单行弹窗高 44px，gap-2 = 8px），
+   正好等于新弹窗把上一条挤上去的距离，所以入场全程间距恒定、不会互相遮挡；
+   改字号、padding 或 gap 后要一起复核这个数。
+   用 translate 而不是 transform，避免和位移补间抢同一个属性 */
 @keyframes toast-in {
   from {
     opacity: 0;
-    transform: translateY(40px);
+    translate: 0 52px;
   }
 }
 
