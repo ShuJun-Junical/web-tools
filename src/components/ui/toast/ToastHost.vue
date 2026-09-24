@@ -7,7 +7,7 @@ const { toasts, closeToast, handleToastLeft } = useToast();
 
 // 宿主自身不会因队列变化 re-render（插槽依赖被 reka 的 ToastViewport 收集），
 // 所以位移补间挂在队列签名上，不能用 onBeforeUpdate/onUpdated。
-useToastMove('.toast-root', () => toasts.value.map((toast) => toast.id).join());
+useToastMove('.toast-root', toasts);
 
 /** 出场动画放完才出队；入场动画结束时 open 还是 true，走到这里直接跳过 */
 function onToastAnimationEnd(toast: ToastItem) {
