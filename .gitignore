@@ -23,3 +23,6 @@ logs
 
 # Local pnpm store
 .pnpm-store
+
+# Agent progress document
+.agent-progress.md
