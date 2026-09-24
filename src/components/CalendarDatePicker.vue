@@ -71,36 +71,33 @@ const lunarMonths = computed(() =>
   lunarYear.value
     ? LunarYear.fromYear(Number(lunarYear.value))
         .getMonthsInYear()
-        .map(item => ({
+        .map((item) => ({
           value: String(item.getMonth()),
           label: `${item.isLeap() ? '闰' : ''}${lunarMonthNames[Math.abs(item.getMonth()) - 1]}`,
           days: item.getDayCount(),
         }))
-    : [],
+    : []
 );
 const selectedLunarMonth = computed(() =>
-  lunarMonths.value.find(item => item.value === lunarMonth.value),
+  lunarMonths.value.find((item) => item.value === lunarMonth.value)
 );
 const lunarDays = computed(() =>
-  Array.from(
-    { length: selectedLunarMonth.value?.days ?? 0 },
-    (_, index) => index + 1,
-  ),
+  Array.from({ length: selectedLunarMonth.value?.days ?? 0 }, (_, index) => index + 1)
 );
-const lunarYearItems = years.map(value => ({
+const lunarYearItems = years.map((value) => ({
   value: String(value),
   label: `${value}${LunarYear.fromYear(value).getGanZhi()}年`,
 }));
 const lunarDayItems = computed(() =>
-  lunarDays.value.map(value => ({
+  lunarDays.value.map((value) => ({
     value: String(value),
     label: lunarDayNames[value - 1],
-  })),
+  }))
 );
 const lunarSummary = computed(() =>
   lunarYear.value && selectedLunarMonth.value && lunarDay.value
     ? `${lunarYear.value}${LunarYear.fromYear(Number(lunarYear.value)).getGanZhi()}年${selectedLunarMonth.value.label}${lunarDayNames[Number(lunarDay.value) - 1]}`
-    : '',
+    : ''
 );
 
 function setLunar(lunar: Lunar) {
@@ -123,17 +120,12 @@ function useSolar(value: CalendarDate | null) {
 }
 
 function useLunar() {
-  if (syncing || !lunarYear.value || !lunarMonth.value || !lunarDay.value)
-    return;
-  if (
-    !selectedLunarMonth.value ||
-    Number(lunarDay.value) > selectedLunarMonth.value.days
-  )
-    return;
+  if (syncing || !lunarYear.value || !lunarMonth.value || !lunarDay.value) return;
+  if (!selectedLunarMonth.value || Number(lunarDay.value) > selectedLunarMonth.value.days) return;
   const lunar = Lunar.fromYmd(
     Number(lunarYear.value),
     Number(lunarMonth.value),
-    Number(lunarDay.value),
+    Number(lunarDay.value)
   );
   if (
     lunar.getYear() !== Number(lunarYear.value) ||
@@ -143,11 +135,7 @@ function useLunar() {
     return;
   syncing = true;
   const solar = lunar.getSolar();
-  solarDate.value = new CalendarDate(
-    solar.getYear(),
-    solar.getMonth(),
-    solar.getDay(),
-  );
+  solarDate.value = new CalendarDate(solar.getYear(), solar.getMonth(), solar.getDay());
   setLunar(lunar);
   calendar.value = 'lunar';
   year.value = lunarYear.value;
@@ -175,13 +163,12 @@ function resolveLunarDay(input: string) {
 
 watch(solarDate, useSolar, { flush: 'sync' });
 watch([lunarYear, lunarMonth, lunarDay], useLunar, { flush: 'sync' });
-watch(lunarMonths, months => {
-  if (lunarMonth.value && !months.some(item => item.value === lunarMonth.value))
+watch(lunarMonths, (months) => {
+  if (lunarMonth.value && !months.some((item) => item.value === lunarMonth.value))
     lunarMonth.value = months[0]?.value ?? '';
 });
-watch(lunarDays, days => {
-  if (Number(lunarDay.value) > days.length)
-    lunarDay.value = String(days.length);
+watch(lunarDays, (days) => {
+  if (Number(lunarDay.value) > days.length) lunarDay.value = String(days.length);
 });
 </script>
 
@@ -200,9 +187,7 @@ watch(lunarDays, days => {
     </label>
     <div class="min-w-0 flex-[1_1_24rem]">
       <p class="text-sm font-medium">农历日期</p>
-      <div
-        class="mt-2 grid gap-2 sm:grid-cols-[10rem_6.5rem_6.5rem]"
-      >
+      <div class="mt-2 grid gap-2 sm:grid-cols-[10rem_6.5rem_6.5rem]">
         <Combobox
           v-model="lunarYear"
           :items="lunarYearItems"
@@ -225,7 +210,11 @@ watch(lunarDays, days => {
           :resolve-input="resolveLunarDay"
         />
       </div>
-      <div class="min-h-5 pt-1"><p v-if="lunarSummary" aria-live="polite" class="text-xs text-muted-foreground">{{ lunarSummary }}</p></div>
+      <div class="min-h-5 pt-1">
+        <p v-if="lunarSummary" aria-live="polite" class="text-xs text-muted-foreground">
+          {{ lunarSummary }}
+        </p>
+      </div>
     </div>
   </div>
 </template>

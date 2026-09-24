@@ -5,7 +5,18 @@ export interface CustomTag {
   namespaceUri?: string;
 }
 
-const exifTypes = new Set(['string', 'int8u', 'int8s', 'int16u', 'int16s', 'int32u', 'int32s', 'rational64u', 'rational64s', 'undef']);
+const exifTypes = new Set([
+  'string',
+  'int8u',
+  'int8s',
+  'int16u',
+  'int16s',
+  'int32u',
+  'int32s',
+  'rational64u',
+  'rational64s',
+  'undef',
+]);
 const xmpTypes = new Set(['string', 'integer', 'real', 'rational', 'date', 'boolean', 'lang-alt']);
 const tagNamePattern = /^[A-Za-z][A-Za-z0-9_]*$/;
 // 允许常规 URI 字符；单引号与反斜杠会破坏 ExifTool 配置里 Perl 单引号字符串的边界，必须排除。
@@ -24,13 +35,15 @@ export function dataTypesForGroup(group: string): string[] {
 }
 
 function name(value: string, label: string) {
-  if (!tagNamePattern.test(value)) throw new Error(`${label}只允许英文字母、数字和下划线，且必须以字母开头。`);
+  if (!tagNamePattern.test(value))
+    throw new Error(`${label}只允许英文字母、数字和下划线，且必须以字母开头。`);
   return value;
 }
 
 function numericId(value: string, max: number) {
   const id = /^0x[0-9a-f]+$/i.test(value) ? Number.parseInt(value.slice(2), 16) : Number(value);
-  if (!Number.isInteger(id) || id < 0 || id > max) throw new Error(`此层级的字段标识须为 0 至 ${max} 的数字或 0x 十六进制编号。`);
+  if (!Number.isInteger(id) || id < 0 || id > max)
+    throw new Error(`此层级的字段标识须为 0 至 ${max} 的数字或 0x 十六进制编号。`);
   return id;
 }
 
@@ -76,7 +89,10 @@ export function customTagConfig(tag: CustomTag) {
     if (!xmpTypes.has(dataType)) throw new Error('XMP 自定义字段类型不受支持。');
     if (tag.namespaceUri) {
       const uri = tag.namespaceUri.trim();
-      if (!namespaceUriPattern.test(uri)) throw new Error('XMP 命名空间 URI 无效：须以 http(s):// 或 urn: 开头，且不含引号、反斜杠或空白。');
+      if (!namespaceUriPattern.test(uri))
+        throw new Error(
+          'XMP 命名空间 URI 无效：须以 http(s):// 或 urn: 开头，且不含引号、反斜杠或空白。'
+        );
       return {
         tag: `${group}:${tagName}`,
         config: `%Image::ExifTool::UserDefined = ( 'Image::ExifTool::XMP::Main' => { ${prefix} => { SubDirectory => { TagTable => 'Image::ExifTool::UserDefined::Custom' } } } );\n%Image::ExifTool::UserDefined::Custom = ( GROUPS => { 0 => 'XMP', 1 => '${group}', 2 => 'Image' }, NAMESPACE => { '${prefix}' => '${uri}' }, WRITABLE => '${dataType}', ${tagName} => {} );\n1;\n`,
@@ -92,7 +108,12 @@ export function customTagConfig(tag: CustomTag) {
 }
 
 /** 就地校验用：返回错误信息，空字符串表示通过。IFD0/ExifIFD/GPS/IPTC 的英文标识按内置字段直写处理。 */
-export function fieldValidationError(group: string, identifier: string, dataType: string, namespaceUri = ''): string {
+export function fieldValidationError(
+  group: string,
+  identifier: string,
+  dataType: string,
+  namespaceUri = ''
+): string {
   const trimmedIdentifier = identifier.trim();
   if (!group) return '请选择字段层级。';
   if (!trimmedIdentifier) return '请填写字段标识。';
@@ -101,7 +122,12 @@ export function fieldValidationError(group: string, identifier: string, dataType
     return dataTypesForGroup(group).includes(dataType.trim()) ? '' : '此层级不支持该字段类型。';
   }
   try {
-    customTagConfig({ group, identifier, dataType, namespaceUri: namespaceUri.trim() || undefined });
+    customTagConfig({
+      group,
+      identifier,
+      dataType,
+      namespaceUri: namespaceUri.trim() || undefined,
+    });
     return '';
   } catch (error) {
     return error instanceof Error ? error.message : String(error);

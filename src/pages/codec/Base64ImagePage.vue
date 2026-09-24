@@ -14,23 +14,19 @@ const dropZone = ref<HTMLElement | null>(null);
 const dataUrl = ref('');
 const fileName = ref('image');
 const imageError = ref('');
-const { copyPending, clipboardError, copyText, readText } =
-  useClipboardActions();
+const { copyPending, clipboardError, copyText, readText } = useClipboardActions();
 const { showToast } = useToast();
 const feedback = computed(() => imageError.value || clipboardError.value);
 const preview = computed(() => parseImageDataUrl(dataUrl.value)?.dataUrl ?? '');
 const displayedDataUrl = computed(() =>
   dataUrl.value.length > 240
     ? `${dataUrl.value.slice(0, 100)}\n\n…… 中间内容已省略 ……\n\n${dataUrl.value.slice(-100)}`
-    : dataUrl.value,
+    : dataUrl.value
 );
 const downloadName = computed(() => {
   const mimeType = parseImageDataUrl(dataUrl.value)?.mimeType;
   if (!mimeType || fileName.value.includes('.')) return fileName.value;
-  const extension = mimeType
-    .split('/')[1]
-    .replace('jpeg', 'jpg')
-    .replace('+xml', '');
+  const extension = mimeType.split('/')[1].replace('jpeg', 'jpg').replace('+xml', '');
   return `${fileName.value}.${extension}`;
 });
 const { open, onChange, reset } = useFileDialog({
@@ -39,17 +35,15 @@ const { open, onChange, reset } = useFileDialog({
   reset: true,
 });
 
-onChange(files => {
+onChange((files) => {
   if (files?.[0]) readImage(files[0]);
 });
 
 const { isOverDropZone } = useDropZone(dropZone, {
   multiple: false,
   preventDefaultForUnhandled: true,
-  checkValidity: items =>
-    [...items].every(
-      item => item.kind === 'file' && item.type.startsWith('image/'),
-    ),
+  checkValidity: (items) =>
+    [...items].every((item) => item.kind === 'file' && item.type.startsWith('image/')),
   onDrop(files) {
     if (files?.[0]) readImage(files[0]);
     else imageError.value = '请拖入一个有效的图片文件。';
@@ -83,8 +77,8 @@ async function pasteDataUrl(event?: ClipboardEvent) {
   let value: string | null;
 
   if (event) {
-    const image = [...(event.clipboardData?.files ?? [])].find(file =>
-      file.type.startsWith('image/'),
+    const image = [...(event.clipboardData?.files ?? [])].find((file) =>
+      file.type.startsWith('image/')
     );
     if (image) {
       readImage(image);
@@ -96,7 +90,7 @@ async function pasteDataUrl(event?: ClipboardEvent) {
     try {
       const items = await navigator.clipboard.read();
       for (const item of items) {
-        const imageType = item.types.find(type => type.startsWith('image/'));
+        const imageType = item.types.find((type) => type.startsWith('image/'));
         if (imageType) {
           const image = await item.getType(imageType);
           readImage(new File([image], 'image', { type: imageType }));
@@ -104,10 +98,8 @@ async function pasteDataUrl(event?: ClipboardEvent) {
         }
       }
 
-      const textItem = items.find(item => item.types.includes('text/plain'));
-      value = textItem
-        ? await (await textItem.getType('text/plain')).text()
-        : '';
+      const textItem = items.find((item) => item.types.includes('text/plain'));
+      value = textItem ? await (await textItem.getType('text/plain')).text() : '';
     } catch {
       clipboardError.value = '读取剪贴板失败，请检查浏览器权限。';
       return;
@@ -127,7 +119,7 @@ async function pasteDataUrl(event?: ClipboardEvent) {
   imageError.value = '';
 }
 
-useEventListener('paste', event => {
+useEventListener('paste', (event) => {
   event.preventDefault();
   pasteDataUrl(event);
 });
@@ -155,9 +147,7 @@ function clear() {
               isOverDropZone ? 'border-primary bg-accent' : 'border-border',
               !preview && 'cursor-pointer hover:bg-accent/50',
             ]"
-            :aria-label="
-              preview ? '图片预览，可拖入图片替换' : '选择或拖入图片'
-            "
+            :aria-label="preview ? '图片预览，可拖入图片替换' : '选择或拖入图片'"
             @click="preview ? undefined : open()"
             @keydown.enter.prevent="!preview && open()"
             @keydown.space.prevent="!preview && open()"
@@ -169,14 +159,9 @@ function clear() {
               class="max-h-96 max-w-full object-contain"
             />
             <template v-else>
-              <ImageUp
-                class="mb-3 size-8 text-muted-foreground"
-                aria-hidden="true"
-              />
+              <ImageUp class="mb-3 size-8 text-muted-foreground" aria-hidden="true" />
               <p class="font-medium">点击选择图片，或将图片拖到这里</p>
-              <p class="mt-1 text-sm text-muted-foreground">
-                图片只在当前浏览器中读取
-              </p>
+              <p class="mt-1 text-sm text-muted-foreground">图片只在当前浏览器中读取</p>
             </template>
           </div>
           <div v-if="preview" class="flex flex-wrap gap-2">
@@ -217,11 +202,7 @@ function clear() {
       v-if="feedback"
       role="status"
       aria-live="polite"
-      :class="
-        imageError || clipboardError
-          ? 'text-destructive'
-          : 'text-muted-foreground'
-      "
+      :class="imageError || clipboardError ? 'text-destructive' : 'text-muted-foreground'"
       class="text-sm"
     >
       {{ feedback }}

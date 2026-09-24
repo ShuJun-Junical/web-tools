@@ -2,23 +2,12 @@
 import { computed, ref } from 'vue';
 import ToolPage from '@/components/ToolPage.vue';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import {
-  analyzeText,
-  supportsGraphemeSegmentation,
-} from '@/lib/text-statistics';
+import { analyzeText, supportsGraphemeSegmentation } from '@/lib/text-statistics';
 
 const text = ref('');
-const statistics = computed(() =>
-  text.value ? analyzeText(text.value) : null,
-);
+const statistics = computed(() => (text.value ? analyzeText(text.value) : null));
 
 const groups = computed(() => {
   const result = statistics.value;
@@ -29,27 +18,15 @@ const groups = computed(() => {
       title: '论文常用口径',
       description: '只统计当前输入的文本，不识别封面、摘要、正文或参考文献。',
       items: [
-        [
-          '论文字符数（不计空白）',
-          result.thesisCharacters,
-          '排除 Unicode 空白，标点和符号计入。',
-        ],
+        ['论文字符数（不计空白）', result.thesisCharacters, '排除 Unicode 空白，标点和符号计入。'],
         [
           '净字符数（不计空白、标点）',
           result.thesisCharactersWithoutPunctuation,
           '排除 Unicode 空白和标点。',
         ],
-        [
-          '中英混排字数',
-          result.mixedWords,
-          '每个汉字计 1，连续拉丁字母或数字计 1。',
-        ],
+        ['中英混排字数', result.mixedWords, '每个汉字计 1，连续拉丁字母或数字计 1。'],
         ['汉字数', result.hanCharacters, '统一汉字及“〇”，不含标点。'],
-        [
-          '英文单词数',
-          result.latinWords,
-          '连续拉丁字母计 1，内部撇号连接，连字符分词。',
-        ],
+        ['英文单词数', result.latinWords, '连续拉丁字母计 1，内部撇号连接，连字符分词。'],
       ],
     },
     {
@@ -61,23 +38,11 @@ const groups = computed(() => {
           result.visibleCharacters,
           '空白计入；组合字符和完整 emoji 各计 1。',
         ],
-        [
-          '去换行字符数',
-          result.charactersWithoutLineBreaks,
-          '仅排除 CR 和 LF，其他空白保留。',
-        ],
+        ['去换行字符数', result.charactersWithoutLineBreaks, '仅排除 CR 和 LF，其他空白保留。'],
         ['拉丁字母数', result.latinLetters, '包括带重音符号的拉丁字母。'],
-        [
-          '数字字符数',
-          result.digitCharacters,
-          'Unicode 十进制数字，每位计 1。',
-        ],
+        ['数字字符数', result.digitCharacters, 'Unicode 十进制数字，每位计 1。'],
         ['标点符号数', result.punctuationCharacters, 'Unicode 标点类别字符。'],
-        [
-          '空白字符数',
-          result.whitespaceCharacters,
-          '包括空格、全角空格、Tab 和换行。',
-        ],
+        ['空白字符数', result.whitespaceCharacters, '包括空格、全角空格、Tab 和换行。'],
       ],
     },
     {
@@ -107,14 +72,10 @@ const groups = computed(() => {
     <Card>
       <CardHeader>
         <CardTitle>输入文本</CardTitle>
-        <CardDescription
-          >所有统计均在浏览器本地实时完成，不保存输入内容。</CardDescription
-        >
+        <CardDescription>所有统计均在浏览器本地实时完成，不保存输入内容。</CardDescription>
       </CardHeader>
       <CardContent class="flex flex-col gap-4">
-        <label for="word-count-text" class="text-sm font-medium"
-          >待统计文本</label
-        >
+        <label for="word-count-text" class="text-sm font-medium">待统计文本</label>
         <Textarea
           id="word-count-text"
           v-model="text"
@@ -122,9 +83,7 @@ const groups = computed(() => {
           show-line-numbers
           placeholder="输入或粘贴需要统计的文本"
           :aria-describedby="
-            supportsGraphemeSegmentation
-              ? 'word-count-help'
-              : 'word-count-help word-count-support'
+            supportsGraphemeSegmentation ? 'word-count-help' : 'word-count-help word-count-support'
           "
         />
         <p id="word-count-help" class="text-sm text-muted-foreground">
@@ -138,12 +97,7 @@ const groups = computed(() => {
         >
           当前浏览器不支持 Unicode 字素分段，总字符数暂按 Unicode 码点统计。
         </p>
-        <Button
-          variant="outline"
-          class="self-start"
-          :disabled="!text"
-          @click="text = ''"
-        >
+        <Button variant="outline" class="self-start" :disabled="!text" @click="text = ''">
           清空
         </Button>
       </CardContent>

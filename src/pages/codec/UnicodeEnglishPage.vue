@@ -1,32 +1,32 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import ToolPage from '@/components/ToolPage.vue'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Textarea } from '@/components/ui/textarea'
-import { useClipboardActions } from '@/composables/useClipboardActions'
+import { computed, ref } from 'vue';
+import ToolPage from '@/components/ToolPage.vue';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Textarea } from '@/components/ui/textarea';
+import { useClipboardActions } from '@/composables/useClipboardActions';
 import {
   convertUnicodeStyle,
   listUnicodeStyles,
   normalizeUnicodeStyle,
-} from '@/lib/unicode-english-converter'
+} from '@/lib/unicode-english-converter';
 
-const input = ref('Professional 2026')
-const styles = listUnicodeStyles()
-const normalized = computed(() => normalizeUnicodeStyle(input.value))
+const input = ref('Professional 2026');
+const styles = listUnicodeStyles();
+const normalized = computed(() => normalizeUnicodeStyle(input.value));
 const results = computed(() =>
-  styles.map(style => ({
+  styles.map((style) => ({
     ...style,
     value: convertUnicodeStyle(normalized.value, style.id, {
       fullwidthSpace: style.id === 'fullwidth',
     }),
-  })),
-)
-const { copyPending, clipboardError, copyText, readText } = useClipboardActions()
+  }))
+);
+const { copyPending, clipboardError, copyText, readText } = useClipboardActions();
 
 async function paste() {
-  const value = await readText()
-  if (value !== null) input.value = value
+  const value = await readText();
+  if (value !== null) input.value = value;
 }
 </script>
 
@@ -70,7 +70,9 @@ async function paste() {
           </Button>
         </CardHeader>
         <CardContent>
-          <p class="min-h-12 whitespace-pre-wrap break-words text-lg" aria-live="polite">{{ result.value || '—' }}</p>
+          <p class="min-h-12 whitespace-pre-wrap break-words text-lg" aria-live="polite">
+            {{ result.value || '—' }}
+          </p>
         </CardContent>
       </Card>
     </div>

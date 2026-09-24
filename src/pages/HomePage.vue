@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ArrowRight } from '@lucide/vue'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { toolGroups } from '@/tools'
+import { ArrowRight } from '@lucide/vue';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { toolGroups } from '@/tools';
 </script>
 
 <template>
@@ -17,12 +17,20 @@ import { toolGroups } from '@/tools'
     <section v-for="group in toolGroups" :key="group.title" class="space-y-4">
       <h2 class="text-xl font-semibold">{{ group.title }}</h2>
       <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        <RouterLink v-for="tool in group.tools" :key="tool.path" :to="tool.path" class="group rounded-xl">
+        <RouterLink
+          v-for="tool in group.tools"
+          :key="tool.path"
+          :to="tool.path"
+          class="group rounded-xl"
+        >
           <Card class="h-full transition-colors group-hover:border-foreground/30">
             <CardHeader>
               <CardTitle class="flex items-center justify-between gap-3 text-lg">
                 {{ tool.title }}
-                <ArrowRight class="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
+                <ArrowRight
+                  class="size-4 transition-transform group-hover:translate-x-1"
+                  aria-hidden="true"
+                />
               </CardTitle>
               <CardDescription>{{ tool.description }}</CardDescription>
             </CardHeader>
