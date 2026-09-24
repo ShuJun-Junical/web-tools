@@ -38,29 +38,27 @@ watch(
 
 <template>
   <div class="min-h-screen bg-muted/30">
-    <header class="fixed inset-x-0 top-0 z-40 h-16 border-b bg-background/95 backdrop-blur">
-      <div class="flex h-full items-center gap-3 px-4 lg:px-6">
-        <Button
-          variant="ghost"
-          size="icon"
-          class="lg:hidden"
-          :aria-label="navigationOpen ? '关闭导航' : '打开导航'"
-          :aria-expanded="navigationOpen"
-          aria-controls="site-navigation"
-          @click="navigationOpen = !navigationOpen"
+    <header class="sticky top-0 z-40 flex h-16 items-center gap-3 border-b bg-background/95 backdrop-blur px-4 lg:px-6">
+      <Button
+        variant="ghost"
+        size="icon"
+        class="lg:hidden"
+        :aria-label="navigationOpen ? '关闭导航' : '打开导航'"
+        :aria-expanded="navigationOpen"
+        aria-controls="site-navigation"
+        @click="navigationOpen = !navigationOpen"
+      >
+        <X v-if="navigationOpen" />
+        <Menu v-else />
+      </Button>
+      <RouterLink to="/" class="flex items-center gap-2 rounded-md font-semibold">
+        <span
+          class="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground"
         >
-          <X v-if="navigationOpen" />
-          <Menu v-else />
-        </Button>
-        <RouterLink to="/" class="flex items-center gap-2 rounded-md font-semibold">
-          <span
-            class="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground"
-          >
-            <Wrench class="size-4" aria-hidden="true" />
-          </span>
-          工具站
-        </RouterLink>
-      </div>
+          <Wrench class="size-4" aria-hidden="true" />
+        </span>
+        工具站
+      </RouterLink>
     </header>
 
     <button
@@ -70,37 +68,39 @@ watch(
       @click="navigationOpen = false"
     />
 
-    <aside
-      id="site-navigation"
-      class="fixed top-16 bottom-0 left-0 z-30 w-72 border-r bg-background p-4 transition-transform lg:translate-x-0"
-      :class="navigationOpen ? 'translate-x-0' : '-translate-x-full'"
-      aria-label="工具导航"
-    >
-      <nav class="space-y-6">
-        <section v-for="group in toolGroups" :key="group.title">
-          <h2 class="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            {{ group.title }}
-          </h2>
-          <ul class="space-y-1">
-            <li v-for="tool in group.tools" :key="tool.path">
-              <RouterLink
-                :to="tool.path"
-                class="block rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent"
-                active-class="bg-accent font-medium"
-              >
-                {{ tool.title }}
-              </RouterLink>
-            </li>
-          </ul>
-        </section>
-      </nav>
-    </aside>
+    <div class="lg:flex">
+      <aside
+        id="site-navigation"
+        class="fixed top-16 bottom-0 left-0 z-30 flex w-72 flex-col overflow-hidden border-r bg-background transition-transform lg:sticky lg:top-16 lg:h-[calc(100vh-4rem)] lg:translate-x-0"
+        :class="navigationOpen ? 'translate-x-0' : '-translate-x-full'"
+        aria-label="工具导航"
+      >
+        <nav class="flex-1 space-y-6 overflow-y-auto p-4">
+          <section v-for="group in toolGroups" :key="group.title">
+            <h2 class="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              {{ group.title }}
+            </h2>
+            <ul class="space-y-1">
+              <li v-for="tool in group.tools" :key="tool.path">
+                <RouterLink
+                  :to="tool.path"
+                  class="block rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent"
+                  active-class="bg-accent font-medium"
+                >
+                  {{ tool.title }}
+                </RouterLink>
+              </li>
+            </ul>
+          </section>
+        </nav>
+      </aside>
 
-    <main class="pt-16 lg:pl-72">
-      <div class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
-        <RouterView />
-      </div>
-    </main>
+      <main class="flex-1">
+        <div class="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+          <RouterView />
+        </div>
+      </main>
+    </div>
 
     <ToastHost />
 
