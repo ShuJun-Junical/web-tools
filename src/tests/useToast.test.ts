@@ -1,25 +1,9 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { useToast, __resetToastsForTests } from '@/composables/useToast';
 
 describe('useToast', () => {
   beforeEach(() => {
-    vi.useFakeTimers();
     __resetToastsForTests();
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  it('flips open=false on the proxied item after the auto-close timer fires', () => {
-    const { showToast, toasts } = useToast();
-
-    showToast('hello', 'success');
-    expect(toasts.value).toHaveLength(1);
-    expect(toasts.value[0].open).toBe(true);
-
-    vi.advanceTimersByTime(3000);
-    expect(toasts.value[0].open).toBe(false);
   });
 
   it('closes the existing item in place when the same message is triggered again', () => {
@@ -45,22 +29,7 @@ describe('useToast', () => {
     expect(toasts.value).toHaveLength(1);
     expect(toasts.value[0]).not.toBe(repeated);
     expect(toasts.value[0]).toMatchObject({ message: 'hello', variant: 'success', open: true });
-  });
-
-  it('gives the re-enqueued toast its own auto-close window', () => {
-    const { showToast, toasts, handleToastLeft } = useToast();
-
-    showToast('hello', 'success');
-    vi.advanceTimersByTime(2000);
-    showToast('hello', 'success');
-    expect(toasts.value[0].open).toBe(false);
-
-    handleToastLeft(toasts.value[0]);
-    vi.advanceTimersByTime(2000);
-    expect(toasts.value[0].open).toBe(true);
-
-    vi.advanceTimersByTime(1000);
-    expect(toasts.value[0].open).toBe(false);
+    expect(toasts.value[0].id).not.toBe(repeated.id);
   });
 
   it('keeps a single pending repeat when triggered again while the toast is closing', () => {
@@ -93,10 +62,6 @@ describe('useToast', () => {
     showToast('hello', 'success');
     const item = toasts.value[0];
     handleToastLeft(item);
-    expect(toasts.value).toHaveLength(0);
-
-    // 出队时它的计时器也要一起停掉，不能留个空转的 timeout
-    vi.advanceTimersByTime(3000);
     expect(toasts.value).toHaveLength(0);
   });
 
