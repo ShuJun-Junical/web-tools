@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ToastDescription, ToastProvider, ToastRoot, ToastViewport } from 'reka-ui';
-import { useToast, type ToastItem } from '@/composables/useToast';
+import { TOAST_DURATION, useToast, type ToastItem } from '@/composables/useToast';
 import { useToastMove } from '@/composables/useToastMove';
 
 const { toasts, closeToast, handleToastLeft } = useToast();
@@ -16,12 +16,13 @@ function onToastAnimationEnd(toast: ToastItem) {
 </script>
 
 <template>
-  <ToastProvider>
+  <ToastProvider :duration="TOAST_DURATION">
     <ToastViewport
       class="fixed right-6 bottom-6 z-50 flex w-full max-w-sm flex-col gap-2 outline-none"
     >
       <!--
-        duration 传 Infinity：超时由 store 里的计时器负责，关掉 reka 自己的那份。
+        超时、以及 hover/焦点/窗口失焦时的暂停都交给 reka（duration 由 ToastProvider 下发），
+        store 只负责队列，不再自持计时器。
         出队听自己 CSS 动画的原生 animationend（toast-in 与 toast-out 都挂在同一个节点上，
         靠 open 区分），不再依赖 reka 内部 Presence 在节点上派发的 after-leave 自定义事件。
       -->
@@ -29,7 +30,6 @@ function onToastAnimationEnd(toast: ToastItem) {
         v-for="(toast, index) in toasts"
         :key="toast.id"
         :open="toast.open"
-        :duration="Number.POSITIVE_INFINITY"
         :type="toast.variant === 'error' ? 'foreground' : 'background'"
         :data-toast-id="toast.id"
         :style="{ order: -index }"
