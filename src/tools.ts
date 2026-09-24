@@ -1,4 +1,4 @@
-export const toolGroups = [
+const toolGroupsBase = [
   {
     title: '图片工具',
     tools: [
@@ -119,3 +119,22 @@ export const toolGroups = [
     ],
   },
 ] as const;
+
+/** 仅开发环境可访问的内部测试页：生产构建里既不出现在导航，也不会被打进产物。 */
+const devToolGroups = import.meta.env.DEV
+  ? [
+      {
+        title: '开发',
+        tools: [
+          {
+            path: '/dev/toast',
+            title: 'Toast 测试',
+            description: '手动触发各类 Toast，观察堆叠顺序、上移补间和重复触发时的淡出重播。',
+            component: () => import('@/pages/dev/ToastPage.vue'),
+          },
+        ],
+      },
+    ]
+  : [];
+
+export const toolGroups = [...toolGroupsBase, ...devToolGroups];
