@@ -72,7 +72,7 @@ watch(
 
     <aside
       id="site-navigation"
-      class="fixed inset-y-16 left-0 z-30 w-72 border-r bg-background p-4 transition-transform lg:translate-x-0"
+      class="fixed top-16 bottom-0 left-0 z-30 w-72 border-r bg-background p-4 transition-transform lg:translate-x-0"
       :class="navigationOpen ? 'translate-x-0' : '-translate-x-full'"
       aria-label="工具导航"
     >
