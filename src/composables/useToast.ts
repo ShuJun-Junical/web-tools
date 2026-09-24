@@ -2,7 +2,7 @@ import { reactive, ref } from 'vue';
 
 type ToastVariant = 'success' | 'error';
 
-interface ToastItem {
+export interface ToastItem {
   id: number;
   message: string;
   variant: ToastVariant;

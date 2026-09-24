@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ToastDescription, ToastProvider, ToastRoot, ToastViewport } from 'reka-ui';
-import { useToast } from '@/composables/useToast';
+import { useToast, type ToastItem } from '@/composables/useToast';
 import { useToastMove } from '@/composables/useToastMove';
 
 const { toasts, closeToast, handleToastLeft } = useToast();
@@ -8,6 +8,11 @@ const { toasts, closeToast, handleToastLeft } = useToast();
 // 宿主自身不会因队列变化 re-render（插槽依赖被 reka 的 ToastViewport 收集），
 // 所以位移补间挂在队列签名上，不能用 onBeforeUpdate/onUpdated。
 useToastMove('.toast-root', () => toasts.value.map((toast) => toast.id).join());
+
+/** 出场动画放完才出队；入场动画结束时 open 还是 true，走到这里直接跳过 */
+function onToastAnimationEnd(toast: ToastItem) {
+  if (!toast.open) handleToastLeft(toast);
+}
 </script>
 
 <template>
@@ -17,8 +22,8 @@ useToastMove('.toast-root', () => toasts.value.map((toast) => toast.id).join());
     >
       <!--
         duration 传 Infinity：超时由 store 里的计时器负责，关掉 reka 自己的那份。
-        after-leave 不是组件 emit，reka 的 Presence 是在弹窗节点上派发同名 DOM 事件、
-        经属性透传落到 <li> 上被监听到的，它是唯一的出队时机。
+        出队听自己 CSS 动画的原生 animationend（toast-in 与 toast-out 都挂在同一个节点上，
+        靠 open 区分），不再依赖 reka 内部 Presence 在节点上派发的 after-leave 自定义事件。
       -->
       <ToastRoot
         v-for="(toast, index) in toasts"
@@ -31,7 +36,7 @@ useToastMove('.toast-root', () => toasts.value.map((toast) => toast.id).join());
         class="toast-root rounded-lg px-4 py-3 text-sm text-white shadow-lg"
         :class="toast.variant === 'error' ? 'bg-destructive' : 'bg-primary'"
         @update:open="(open) => !open && closeToast(toast)"
-        @after-leave="handleToastLeft(toast)"
+        @animationend="onToastAnimationEnd(toast)"
       >
         <ToastDescription>{{ toast.message }}</ToastDescription>
       </ToastRoot>
