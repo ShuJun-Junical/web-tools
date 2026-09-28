@@ -116,9 +116,7 @@ onMounted(() => {
 });
 
 useResizeObserver(rulerViewport, updateVisibleMillimeters);
-watch([rulerViewport, pixelsPerMillimeter, isVertical], updateVisibleMillimeters, {
-  flush: 'post',
-});
+watch([pixelsPerMillimeter, isVertical], updateVisibleMillimeters, { flush: 'post' });
 
 onBeforeUnmount(() => {
   window.removeEventListener('resize', updateDevicePixelRatio);
