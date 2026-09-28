@@ -9,7 +9,7 @@ import { RadioGroup } from '@/components/ui/radio-group';
 import { Select } from '@/components/ui/select';
 import { calculateBazi, type BaziInput, type BaziResult, type FiveElement } from '@/lib/bazi';
 
-const form = reactive({
+const DEFAULT_FORM = {
   calendar: 'solar' as BaziInput['calendar'],
   year: '',
   month: '',
@@ -20,7 +20,8 @@ const form = reactive({
   gender: 'male',
   daySect: '2',
   yunSect: '1',
-});
+};
+const form = reactive({ ...DEFAULT_FORM });
 const result = ref<BaziResult | null>(null);
 const error = ref('');
 const selectedYear = ref<number | null>(null);
@@ -43,34 +44,15 @@ const allYears = computed(() => result.value?.yun.daYun.flatMap((item) => item.y
 const selectedYearData = computed(
   () => allYears.value.find((item) => item.year === selectedYear.value) ?? null
 );
-const canClear = computed(() =>
-  Boolean(
-    form.year ||
-    form.month ||
-    form.day ||
-    form.hour ||
-    form.minute ||
-    result.value ||
-    error.value ||
-    form.gender !== 'male' ||
-    form.daySect !== '2' ||
-    form.yunSect !== '1'
-  )
+const canClear = computed(
+  () =>
+    result.value !== null ||
+    error.value !== '' ||
+    Object.keys(DEFAULT_FORM).some((key) => form[key as keyof typeof DEFAULT_FORM] !== DEFAULT_FORM[key as keyof typeof DEFAULT_FORM])
 );
 
 function clearPage() {
-  Object.assign(form, {
-    calendar: 'solar',
-    year: '',
-    month: '',
-    day: '',
-    hour: '',
-    minute: '',
-    leapMonth: false,
-    gender: 'male',
-    daySect: '2',
-    yunSect: '1',
-  });
+  Object.assign(form, DEFAULT_FORM);
   result.value = null;
   error.value = '';
   selectedYear.value = null;
