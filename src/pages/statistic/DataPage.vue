@@ -1,16 +1,14 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import ToolPage from '@/components/ToolPage.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { parseNumberLines, summarize } from '@/lib/statistics';
+import { useNumberLinesInput } from '@/composables/useNumberLinesInput';
+import { summarize } from '@/lib/statistics';
 
-const text = ref('');
-const parsed = computed(() => parseNumberLines(text.value));
-const summary = computed(() =>
-  parsed.value.invalidLines.length ? null : summarize(parsed.value.values)
-);
+const { text, parsed, hasError, errorMessage, clear } = useNumberLinesInput();
+const summary = computed(() => (hasError.value ? null : summarize(parsed.value.values)));
 
 const results = computed(() =>
   summary.value
@@ -41,19 +39,19 @@ const results = computed(() =>
           class="min-h-52 resize-y"
           monospace
           placeholder="例如：&#10;12&#10;18.5&#10;20"
-          :aria-invalid="parsed.invalidLines.length > 0"
+          :aria-invalid="hasError"
           aria-describedby="statistics-help statistics-error"
         />
         <p id="statistics-help" class="text-sm text-muted-foreground">空行会被忽略。</p>
         <p
-          v-if="parsed.invalidLines.length"
+          v-if="hasError"
           id="statistics-error"
           role="alert"
           class="text-sm text-destructive"
         >
-          第 {{ parsed.invalidLines.join('、') }} 行不是有效数字，请修正后再计算。
+          {{ errorMessage }}
         </p>
-        <Button variant="outline" :disabled="!text" @click="text = ''">清空</Button>
+        <Button variant="outline" :disabled="!text" @click="clear">清空</Button>
       </CardContent>
     </Card>
 
@@ -61,7 +59,7 @@ const results = computed(() =>
       <CardHeader><CardTitle>计算结果</CardTitle></CardHeader>
       <CardContent>
         <p v-if="!summary" class="text-sm text-muted-foreground">
-          {{ parsed.invalidLines.length ? '输入包含错误。' : '输入数据后显示结果。' }}
+          {{ hasError ? '输入包含错误。' : '输入数据后显示结果。' }}
         </p>
         <dl v-else class="grid gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-3">
           <div v-for="[label, value] in results" :key="label" class="rounded-lg bg-muted/60 p-3">
