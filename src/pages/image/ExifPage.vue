@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, ref, shallowRef, watch } from 'vue';
+import { computed, onBeforeUnmount, reactive, ref, shallowRef, watch } from 'vue';
+import { useExifHistory } from '@/composables/useExifHistory';
 import { ChevronDown, ImageUp, RotateCcw, RotateCw } from '@lucide/vue';
 import { useDropZone, useEventListener, useFileDialog } from '@vueuse/core';
 import {
@@ -18,7 +19,6 @@ import {
   AlertDialogTitle,
 } from 'reka-ui';
 import ToolPage from '@/components/ToolPage.vue';
-import ExifCommonField from '@/components/ExifCommonField.vue';
 import ExifFieldRow from '@/components/ExifFieldRow.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -47,9 +47,7 @@ const largeBlockBytes = 32768;
 const groupItems = tagGroups.map((value) => ({ value, label: value }));
 const dropZone = ref<HTMLElement | null>(null);
 const original = shallowRef<File | null>(null);
-const current = shallowRef<ExifResult | null>(null);
-const history = shallowRef<ExifResult[]>([]);
-const historyIndex = ref(-1);
+const historyApi = useExifHistory();
 const previewUrl = ref('');
 const originalUrl = ref('');
 const showOriginal = ref(false);
@@ -62,25 +60,36 @@ const query = ref('');
 const groupFilter = ref('all');
 const openGroups = ref<string[]>([]);
 const editKey = ref('');
-const rawBlockId = ref('');
-const rawHex = ref('');
-const rawBlockLarge = ref(false);
-const newBlockKind = ref('');
-const newBlockHex = ref('');
-const newGroup = ref<string>('IFD0');
-const newXmpPrefix = ref('');
-const newTag = ref('');
-const newType = ref<string>('string');
-const newValue = ref('');
-const newNamespaceUri = ref('');
-const addTouched = ref(false);
+
+/** 编辑已有原始附加块的表单（块 id + 十六进制内容 + 是否大块提示） */
+const rawForm = reactive({
+  blockId: '',
+  hex: '',
+  large: false,
+});
+
+/** 新增原始附加块的表单（块类型 + 十六进制内容） */
+const newBlockForm = reactive({
+  kind: '',
+  hex: '',
+});
+
+/** 新增自定义字段的表单 */
+const addForm = reactive({
+  group: 'IFD0',
+  xmpPrefix: '',
+  tag: '',
+  type: 'string',
+  value: '',
+  namespaceUri: '',
+  touched: false,
+});
 const confirmOpen = ref(false);
-const confirmKind = ref<'replace' | 'reset'>('replace');
+const confirmKind = ref<'replace'>('replace');
 const pendingFile = shallowRef<File | null>(null);
 let worker: Worker | null = null;
 let requestId = 0;
-let rejectPending: ((reason: Error) => void) | null = null;
-let silentCancel = false;
+let activeController: AbortController | null = null;
 
 const { open, onChange, reset } = useFileDialog({ accept, multiple: false, reset: true });
 onChange((files) => {
@@ -108,8 +117,7 @@ useEventListener('paste', (event) => {
   }
 });
 
-const modified = computed(() => historyIndex.value > 0);
-const dirty = computed(() => history.value.length > 1);
+const modified = computed(() => historyApi.canUndo.value);
 const displayUrl = computed(() => (showOriginal.value ? originalUrl.value : previewUrl.value));
 const downloadName = computed(() => {
   const name = original.value?.name ?? 'image.png';
@@ -117,7 +125,7 @@ const downloadName = computed(() => {
   return dot > 0 ? `${name.slice(0, dot)}-edited${name.slice(dot)}` : `${name}-edited`;
 });
 const filteredFields = computed(() =>
-  (current.value?.fields ?? []).filter((field) => {
+  (historyApi.current.value?.fields ?? []).filter((field) => {
     if (groupFilter.value !== 'all' && field.group !== groupFilter.value) return false;
     const search = query.value.trim().toLowerCase();
     return !search || `${field.key} ${field.value}`.toLowerCase().includes(search);
@@ -137,53 +145,53 @@ const otherGroups = computed(() => {
   return [...groups].map(([name, fields]) => ({ name, fields }));
 });
 const allGroups = computed(() => [
-  ...new Set((current.value?.fields ?? []).map((field) => field.group)),
+  ...new Set((historyApi.current.value?.fields ?? []).map((field) => field.group)),
 ]);
 const filterItems = computed(() => [
   { value: 'all', label: '全部来源' },
   ...allGroups.value.map((value) => ({ value, label: value })),
 ]);
 const gpsPresent = computed(() =>
-  (current.value?.fields ?? []).some(
+  (historyApi.current.value?.fields ?? []).some(
     (field) => field.group === 'GPS' || /GPSLatitude|GPSLongitude|LocationShown/i.test(field.name)
   )
 );
-const unknownBlocks = computed(() => (current.value?.blocks ?? []).filter((block) => !block.known));
-const originalSigned = computed(() => history.value[0]?.signed ?? false);
+const unknownBlocks = computed(() => (historyApi.current.value?.blocks ?? []).filter((block) => !block.known));
+const originalSigned = computed(() => historyApi.initialEntry.value?.signed ?? false);
 
 const effectiveGroup = computed(() =>
-  newGroup.value === 'XMP' ? `XMP-${newXmpPrefix.value.trim()}` : newGroup.value
+  addForm.group === 'XMP' ? `XMP-${addForm.xmpPrefix.trim()}` : addForm.group
 );
 const dataTypeOptions = computed(() => dataTypesForGroup(effectiveGroup.value));
 const dataTypeItems = computed(() =>
   dataTypeOptions.value.map((value) => ({ value, label: value }))
 );
 const identifierPlaceholder = computed(() =>
-  isExifStyleGroup(newGroup.value) ? '字段标识：内置英文名或 0x 编号' : '字段标识，例如 Note'
+  isExifStyleGroup(addForm.group) ? '字段标识：内置英文名或 0x 编号' : '字段标识，例如 Note'
 );
 const newFieldError = computed(() =>
-  fieldValidationError(effectiveGroup.value, newTag.value, newType.value, newNamespaceUri.value)
+  fieldValidationError(effectiveGroup.value, addForm.tag, addForm.type, addForm.namespaceUri)
 );
 const newFieldVisibleError = computed(() =>
-  (addTouched.value || newValue.value || newTag.value) && newFieldError.value
+  (addForm.touched || addForm.value || addForm.tag) && newFieldError.value
     ? newFieldError.value
     : ''
 );
-const rawHexError = computed(() => hexValidationError(rawHex.value));
+const rawHexError = computed(() => hexValidationError(rawForm.hex));
 const rawBlockHexInfo = computed(
   () =>
-    `当前 ${hexByteCount(rawHex.value)} 字节${rawBlockLarge.value ? '；该块较大，建议优先使用字段级写入' : ''}`
+    `当前 ${hexByteCount(rawForm.hex)} 字节${rawForm.large ? '；该块较大，建议优先使用字段级写入' : ''}`
 );
 const newBlockErrorText = computed(() => {
-  if (!current.value || (!newBlockKind.value.trim() && !newBlockHex.value.trim())) return '';
-  return newBlockValidationError(current.value.format, newBlockKind.value, newBlockHex.value);
+  if (!historyApi.current.value || (!newBlockForm.kind.trim() && !newBlockForm.hex.trim())) return '';
+  return newBlockValidationError(historyApi.current.value.format, newBlockForm.kind, newBlockForm.hex);
 });
 
-watch(newType, () => {
-  if (!dataTypeOptions.value.includes(newType.value)) newType.value = 'string';
+watch(() => addForm.type, (value) => {
+  if (!dataTypeOptions.value.includes(value)) addForm.type = 'string';
 });
 
-watch(current, (value) => {
+watch(historyApi.current, (value) => {
   if (previewUrl.value) URL.revokeObjectURL(previewUrl.value);
   previewUrl.value = value ? URL.createObjectURL(value.file) : '';
   previewFailed.value = false;
@@ -209,10 +217,22 @@ function run(action: ExifAction): Promise<ExifResult> {
   stage.value = '准备处理';
   percent.value = null;
   const id = ++requestId;
-  return new Promise((resolve, reject) => {
-    rejectPending = reject;
-    const target = getWorker();
+  const controller = new AbortController();
+  activeController = controller;
+  const target = getWorker();
+  return new Promise<ExifResult>((resolve, reject) => {
+    const cleanup = () => {
+      target.onmessage = null;
+      target.onerror = null;
+      if (activeController === controller) activeController = null;
+    };
+    const finish = (callback: () => void) => {
+      busy.value = false;
+      cleanup();
+      callback();
+    };
     target.onmessage = (event) => {
+      if (controller.signal.aborted) return;
       const message = event.data as {
         id: number;
         type: string;
@@ -227,34 +247,37 @@ function run(action: ExifAction): Promise<ExifResult> {
         percent.value = message.percent ?? null;
         return;
       }
-      busy.value = false;
-      rejectPending = null;
-      if (message.type === 'result' && message.result) resolve(message.result);
-      else reject(new Error(message.message ?? '处理图片失败。'));
+      if (message.type === 'result' && message.result) {
+        const result = message.result;
+        finish(() => resolve(result));
+      } else finish(() => reject(new Error(message.message ?? '处理图片失败。')));
     };
     target.onerror = () => {
-      busy.value = false;
-      rejectPending = null;
-      reject(new Error('本地图片处理引擎异常：启动失败或运行出错，请重试。'));
+      if (controller.signal.aborted) return;
+      finish(() => reject(new Error('本地图片处理引擎异常：启动失败或运行出错，请重试。')));
     };
+    controller.signal.addEventListener('abort', () => {
+      const reason = controller.signal.reason as { silent?: boolean } | undefined;
+      finish(() =>
+        reject(Object.assign(new Error('操作已取消。'), { cancelled: true, silent: !!reason?.silent }))
+      );
+    });
     target.postMessage({ id, action });
   });
 }
 
 function cancel(silent = false) {
-  silentCancel = silent;
+  activeController?.abort(silent ? { silent: true } : undefined);
   worker?.terminate();
   worker = null;
-  rejectPending?.(Object.assign(new Error('操作已取消。'), { cancelled: true }));
-  rejectPending = null;
   busy.value = false;
   stage.value = '';
   percent.value = null;
 }
 
 function reportFailure(cause: unknown) {
-  const err = cause as Error & { cancelled?: boolean };
-  if (err.cancelled && silentCancel) return;
+  const err = cause as Error & { cancelled?: boolean; silent?: boolean };
+  if (err.cancelled && err.silent) return;
   error.value = err.message;
 }
 
@@ -263,7 +286,7 @@ function offerFile(file: File) {
     error.value = '仅支持 JPEG、PNG 和 WebP 文件；HEIC、AVIF 暂未开放。';
     return;
   }
-  if (dirty.value) {
+  if (historyApi.dirty.value) {
     pendingFile.value = file;
     confirmKind.value = 'replace';
     confirmOpen.value = true;
@@ -272,18 +295,17 @@ function offerFile(file: File) {
 
 function clearForms() {
   editKey.value = '';
-  rawBlockId.value = '';
-  rawHex.value = '';
-  rawBlockLarge.value = false;
-  newBlockKind.value = '';
-  newBlockHex.value = '';
-  newGroup.value = 'IFD0';
-  newXmpPrefix.value = '';
-  newTag.value = '';
-  newType.value = 'string';
-  newValue.value = '';
-  newNamespaceUri.value = '';
-  addTouched.value = false;
+  Object.assign(rawForm, { blockId: '', hex: '', large: false });
+  Object.assign(newBlockForm, { kind: '', hex: '' });
+  Object.assign(addForm, {
+    group: 'IFD0',
+    xmpPrefix: '',
+    tag: '',
+    type: 'string',
+    value: '',
+    namespaceUri: '',
+    touched: false,
+  });
 }
 
 async function loadFile(file: File) {
@@ -291,9 +313,7 @@ async function loadFile(file: File) {
   try {
     const result = await run({ type: 'inspect', file, original: file });
     original.value = file;
-    current.value = result;
-    history.value = [result];
-    historyIndex.value = 0;
+    historyApi.init(result);
     openGroups.value = [];
     query.value = '';
     groupFilter.value = 'all';
@@ -306,14 +326,12 @@ async function loadFile(file: File) {
 }
 
 async function apply(action: ExifOperation) {
-  if (!current.value || !original.value || busy.value) return;
+  if (!historyApi.current.value || !original.value || busy.value) return;
   try {
-    const result = await run({ ...action, file: current.value.file, original: original.value });
-    history.value = [...history.value.slice(0, historyIndex.value + 1), result];
-    historyIndex.value++;
-    current.value = result;
+    const result = await run({ ...action, file: historyApi.current.value.file, original: original.value });
+    historyApi.push(result);
     editKey.value = '';
-    rawBlockId.value = '';
+    rawForm.blockId = '';
     if (
       groupFilter.value !== 'all' &&
       !result.fields.some((field) => field.group === groupFilter.value)
@@ -325,25 +343,17 @@ async function apply(action: ExifOperation) {
 }
 
 function undo() {
-  if (historyIndex.value <= 0) return;
-  current.value = history.value[--historyIndex.value];
+  historyApi.undo();
 }
 function redo() {
-  if (historyIndex.value >= history.value.length - 1) return;
-  current.value = history.value[++historyIndex.value];
+  historyApi.redo();
 }
-function askReset() {
-  confirmKind.value = 'reset';
-  confirmOpen.value = true;
+function resetToOriginal() {
+  historyApi.resetToInitial();
+  clearForms();
 }
 function confirmChoice() {
   if (confirmKind.value === 'replace' && pendingFile.value) void loadFile(pendingFile.value);
-  if (confirmKind.value === 'reset' && history.value[0]) {
-    history.value = [history.value[0]];
-    historyIndex.value = 0;
-    current.value = history.value[0];
-    clearForms();
-  }
   pendingFile.value = null;
   confirmOpen.value = false;
 }
@@ -357,25 +367,25 @@ function removeField(field: ExifField) {
   void apply({ type: 'write', tag: field.key });
 }
 function addField() {
-  addTouched.value = true;
+  addForm.touched = true;
   if (newFieldError.value) return;
   void apply({
     type: 'add',
     group: effectiveGroup.value,
-    identifier: newTag.value.trim(),
-    dataType: newType.value.trim(),
-    value: newValue.value,
-    namespaceUri: newNamespaceUri.value.trim() || undefined,
+    identifier: addForm.tag.trim(),
+    dataType: addForm.type.trim(),
+    value: addForm.value,
+    namespaceUri: addForm.namespaceUri.trim() || undefined,
   });
 }
 async function startRaw(id: string) {
-  if (!current.value) return;
-  const block = current.value.blocks.find((item) => item.id === id);
+  if (!historyApi.current.value) return;
+  const block = historyApi.current.value.blocks.find((item) => item.id === id);
   if (!block) return;
-  const bytes = new Uint8Array(await current.value.file.arrayBuffer());
-  rawBlockId.value = id;
-  rawBlockLarge.value = block.dataEnd - block.dataStart > largeBlockBytes;
-  rawHex.value = bytesToHex(bytes.subarray(block.dataStart, block.dataEnd));
+  const bytes = new Uint8Array(await historyApi.current.value.file.arrayBuffer());
+  rawForm.blockId = id;
+  rawForm.large = block.dataEnd - block.dataStart > largeBlockBytes;
+  rawForm.hex = bytesToHex(bytes.subarray(block.dataStart, block.dataEnd));
 }
 function toggleAll() {
   openGroups.value =
@@ -384,7 +394,7 @@ function toggleAll() {
       : otherGroups.value.map((group) => group.name);
 }
 function download() {
-  if (!current.value || busy.value) return;
+  if (!historyApi.current.value || busy.value) return;
   const link = document.createElement('a');
   link.href = previewUrl.value;
   link.download = downloadName.value;
@@ -406,7 +416,7 @@ function download() {
             class="flex min-h-72 items-center justify-center overflow-hidden rounded-xl border border-dashed p-4"
             :class="isOverDropZone ? 'border-primary bg-accent' : 'border-border'"
           >
-            <div v-if="!current" class="flex flex-col items-center gap-2 text-center">
+            <div v-if="!historyApi.current.value" class="flex flex-col items-center gap-2 text-center">
               <ImageUp class="size-8 text-muted-foreground" aria-hidden="true" />
               <p>选择、拖入或粘贴一张 JPEG、PNG、WebP 图片</p>
               <Button :disabled="busy" @click="open()">选择图片</Button>
@@ -422,26 +432,26 @@ function download() {
               当前图片无法预览；原始块编辑可能已破坏文件结构。
             </p>
           </div>
-          <div v-if="current" class="flex flex-wrap items-center gap-2">
+          <div v-if="historyApi.current.value" class="flex flex-wrap items-center gap-2">
             <Button variant="outline" :disabled="busy" @click="open()">替换图片</Button>
             <Button variant="outline" :disabled="busy" @click="showOriginal = !showOriginal">{{
               showOriginal ? '查看待保存版本' : '查看原图'
             }}</Button>
             <Button
               variant="outline"
-              :disabled="busy || historyIndex <= 0"
+              :disabled="busy || !historyApi.canUndo"
               aria-label="撤销"
               @click="undo"
               ><RotateCcw />撤销</Button
             >
             <Button
               variant="outline"
-              :disabled="busy || historyIndex >= history.length - 1"
+              :disabled="busy || !historyApi.canRedo"
               aria-label="重做"
               @click="redo"
               ><RotateCw />重做</Button
             >
-            <Button variant="outline" :disabled="busy || !dirty" @click="askReset"
+            <Button variant="outline" :disabled="busy || !historyApi.dirty" @click="resetToOriginal"
               >恢复原文件</Button
             >
             <Button :disabled="busy" @click="download">下载待保存文件</Button>
@@ -449,7 +459,7 @@ function download() {
         </CardContent>
       </Card>
 
-      <div v-if="current || busy || error" class="flex min-h-14 flex-col justify-center gap-2">
+      <div v-if="historyApi.current.value || busy || error" class="flex min-h-14 flex-col justify-center gap-2">
         <div
           v-if="busy"
           role="status"
@@ -462,18 +472,18 @@ function download() {
         <p v-else-if="error" role="alert" class="text-sm text-destructive">{{ error }}</p>
       </div>
 
-      <template v-if="current">
+      <template v-if="historyApi.current.value">
         <Card>
           <CardHeader><CardTitle>当前待保存状态</CardTitle></CardHeader>
           <CardContent class="grid gap-2 text-sm sm:grid-cols-2">
-            <p>格式：{{ current.format.toUpperCase() }}{{ current.animated ? ' · 动画' : '' }}</p>
+            <p>格式：{{ historyApi.current.value?.format.toUpperCase() }}{{ historyApi.current.value?.animated ? ' · 动画' : '' }}</p>
             <p>GPS：{{ gpsPresent ? '存在' : '未发现' }}</p>
-            <p>字段：{{ current.fields.length }} 项；未知附加块：{{ unknownBlocks.length }} 个</p>
+            <p>字段：{{ historyApi.current.value?.fields.length }} 项；未知附加块：{{ unknownBlocks.length }} 个</p>
             <p>
               图像数据：{{
-                current.imageUnchanged === true
+                historyApi.current.value?.imageUnchanged === true
                   ? '与原文件一致'
-                  : current.imageUnchanged === false
+                  : historyApi.current.value?.imageUnchanged === false
                     ? '已改变'
                     : '无法确认'
               }}
@@ -483,11 +493,11 @@ function download() {
                 modified ? '当前修改可能使签名失效或已将其移除。' : '修改文件后签名可能失效。'
               }}
             </p>
-            <p v-if="current.unsupportedMultiImage" class="sm:col-span-2 text-destructive">
+            <p v-if="historyApi.current.value?.unsupportedMultiImage" class="sm:col-span-2 text-destructive">
               此多图 JPEG 变体仅支持查看，暂不支持编辑导出。
             </p>
-            <p v-if="current.warning" role="alert" class="sm:col-span-2 text-destructive">
-              {{ current.warning }}
+            <p v-if="historyApi.current.value?.warning" role="alert" class="sm:col-span-2 text-destructive">
+              {{ historyApi.current.value?.warning }}
             </p>
             <p v-if="unknownBlocks.length" class="sm:col-span-2 text-muted-foreground">
               未知附加块将在普通清理中保留；强力清理会移除。
@@ -500,13 +510,13 @@ function download() {
           <CardContent class="flex flex-col gap-3">
             <div class="flex flex-wrap gap-2">
               <Button
-                :disabled="busy || current.unsupportedMultiImage"
+                :disabled="busy || historyApi.current.value?.unsupportedMultiImage"
                 @click="apply({ type: 'clear', mode: 'normal' })"
                 >普通清理</Button
               >
               <Button
                 variant="destructive"
-                :disabled="busy || current.unsupportedMultiImage"
+                :disabled="busy || historyApi.current.value?.unsupportedMultiImage"
                 @click="apply({ type: 'clear', mode: 'strong' })"
                 >强力清理</Button
               >
@@ -530,12 +540,12 @@ function download() {
             <p v-if="!commonFields.length" class="text-sm text-muted-foreground">
               未发现常用的元数据字段。
             </p>
-            <ExifCommonField
+            <ExifFieldRow
               v-for="field in commonFields"
               :key="field.key"
               :field="field"
               :busy="busy"
-              :locked="current.unsupportedMultiImage"
+              :locked="historyApi.current.value?.unsupportedMultiImage"
               @remove="removeField(field)"
             />
           </CardContent>
@@ -578,9 +588,10 @@ function download() {
                     v-for="field in group.fields"
                     :key="field.key"
                     :field="field"
-                    :editing="editKey === field.key"
                     :busy="busy"
-                    :locked="current.unsupportedMultiImage"
+                    :locked="historyApi.current.value?.unsupportedMultiImage"
+                    :editable="true"
+                    :editing="editKey === field.key"
                     @edit="startEdit(field)"
                     @apply="(value) => applyEdit(field, value)"
                     @remove="removeField(field)"
@@ -599,30 +610,30 @@ function download() {
                 层级与类型从受支持集合中选择；无法字段级写入的私有结构可使用下方原始块编辑。
               </p>
               <div class="grid gap-2 sm:grid-cols-3">
-                <Select v-model="newGroup" :items="groupItems" label="字段层级" />
+                <Select v-model="addForm.group" :items="groupItems" label="字段层级" />
                 <Input
-                  v-if="newGroup === 'XMP'"
-                  v-model="newXmpPrefix"
+                  v-if="addForm.group === 'XMP'"
+                  v-model="addForm.xmpPrefix"
                   aria-label="XMP 命名空间前缀"
                   placeholder="前缀，例如 dc"
                 />
                 <Input
-                  v-model="newTag"
+                  v-model="addForm.tag"
                   aria-label="字段标识"
                   :placeholder="identifierPlaceholder"
-                  @input="addTouched = true"
+                  @input="addForm.touched = true"
                 />
-                <Select v-model="newType" :items="dataTypeItems" label="字段类型" />
+                <Select v-model="addForm.type" :items="dataTypeItems" label="字段类型" />
               </div>
               <Input
-                v-model="newValue"
+                v-model="addForm.value"
                 aria-label="字段值"
                 placeholder="字段值"
-                @input="addTouched = true"
+                @input="addForm.touched = true"
               />
               <Input
-                v-if="newGroup === 'XMP'"
-                v-model="newNamespaceUri"
+                v-if="addForm.group === 'XMP'"
+                v-model="addForm.namespaceUri"
                 aria-label="自定义 XMP 命名空间 URI"
                 placeholder="自定义 XMP 命名空间 URI（现有命名空间可留空）"
               />
@@ -634,7 +645,7 @@ function download() {
               </p>
               <Button
                 class="self-start"
-                :disabled="busy || current.unsupportedMultiImage"
+                :disabled="busy || historyApi.current.value?.unsupportedMultiImage"
                 @click="addField"
                 >新增字段</Button
               >
@@ -650,7 +661,7 @@ function download() {
             ></CardHeader
           >
           <CardContent class="flex flex-col gap-3">
-            <div v-for="block in current.blocks" :key="block.id" class="rounded-lg border p-3">
+            <div v-for="block in historyApi.current.value?.blocks" :key="block.id" class="rounded-lg border p-3">
               <div class="flex flex-wrap items-center justify-between gap-2">
                 <p class="text-sm">
                   <strong>{{ block.label }}</strong> · {{ block.dataEnd - block.dataStart }} 字节{{
@@ -661,14 +672,14 @@ function download() {
                   v-if="block.kind !== 'Trailer'"
                   variant="outline"
                   size="sm"
-                  :disabled="busy || current.unsupportedMultiImage"
+                  :disabled="busy || historyApi.current.value?.unsupportedMultiImage"
                   @click="startRaw(block.id)"
                   >编辑原始块</Button
                 >
               </div>
-              <div v-if="rawBlockId === block.id" class="mt-3 flex flex-col gap-2">
+              <div v-if="rawForm.blockId === block.id" class="mt-3 flex flex-col gap-2">
                 <Textarea
-                  v-model="rawHex"
+                  v-model="rawForm.hex"
                   :aria-label="`编辑 ${block.label} 十六进制字节`"
                   class="min-h-40 font-mono text-xs"
                 />
@@ -683,10 +694,10 @@ function download() {
                   <Button
                     size="sm"
                     :disabled="busy"
-                    @click="apply({ type: 'raw', blockId: block.id, hex: rawHex })"
+                    @click="apply({ type: 'raw', blockId: block.id, hex: rawForm.hex })"
                     >应用原始编辑</Button
                   >
-                  <Button size="sm" variant="ghost" @click="rawBlockId = ''">取消</Button>
+                  <Button size="sm" variant="ghost" @click="rawForm.blockId = ''">取消</Button>
                 </div>
               </div>
             </div>
@@ -696,12 +707,12 @@ function download() {
                 JPEG 使用 APP0–APP15 或 COM；PNG 使用四字母辅助块名；WebP 使用四字母块名。
               </p>
               <Input
-                v-model="newBlockKind"
+                v-model="newBlockForm.kind"
                 aria-label="新块类型"
                 placeholder="块类型，例如 APP1、iTXt、XMP"
               />
               <Textarea
-                v-model="newBlockHex"
+                v-model="newBlockForm.hex"
                 aria-label="新块十六进制字节"
                 class="min-h-28 font-mono text-xs"
                 placeholder="十六进制原始字节"
@@ -713,13 +724,13 @@ function download() {
               >
                 {{
                   newBlockErrorText ||
-                  (newBlockHex.trim() ? `当前 ${hexByteCount(newBlockHex)} 字节` : '')
+                  (newBlockForm.hex.trim() ? `当前 ${hexByteCount(newBlockForm.hex)} 字节` : '')
                 }}
               </p>
               <Button
                 class="self-start"
-                :disabled="busy || current.unsupportedMultiImage"
-                @click="apply({ type: 'addBlock', kind: newBlockKind, hex: newBlockHex })"
+                :disabled="busy || historyApi.current.value?.unsupportedMultiImage"
+                @click="apply({ type: 'addBlock', kind: newBlockForm.kind, hex: newBlockForm.hex })"
                 >新增原始块</Button
               >
             </div>
@@ -734,9 +745,7 @@ function download() {
         <AlertDialogContent
           class="fixed top-1/2 left-1/2 z-50 w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-lg border bg-background p-6 shadow-lg"
         >
-          <AlertDialogTitle class="text-lg font-semibold">{{
-            confirmKind === 'replace' ? '替换当前图片？' : '恢复原文件？'
-          }}</AlertDialogTitle>
+          <AlertDialogTitle class="text-lg font-semibold">替换当前图片？</AlertDialogTitle>
           <AlertDialogDescription class="mt-2 text-sm text-muted-foreground"
             >当前修改及撤销历史将丢失。</AlertDialogDescription
           >
