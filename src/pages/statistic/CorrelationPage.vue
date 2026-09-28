@@ -1,15 +1,26 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed } from 'vue';
 import ToolPage from '@/components/ToolPage.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { linearCorrelation, parseNumberLines } from '@/lib/statistics';
+import { useNumberLinesInput } from '@/composables/useNumberLinesInput';
+import { linearCorrelation } from '@/lib/statistics';
 
-const xText = ref('');
-const yText = ref('');
-const x = computed(() => parseNumberLines(xText.value));
-const y = computed(() => parseNumberLines(yText.value));
+const {
+  text: xText,
+  parsed: x,
+  hasError: xHasError,
+  errorMessage: xErrorMessage,
+  clear: clearX,
+} = useNumberLinesInput();
+const {
+  text: yText,
+  parsed: y,
+  hasError: yHasError,
+  errorMessage: yErrorMessage,
+  clear: clearY,
+} = useNumberLinesInput();
 const hasErrors = computed(
   () => x.value.invalidLines.length > 0 || y.value.invalidLines.length > 0
 );
@@ -144,6 +155,7 @@ function clear() {
           </dl>
 
           <div
+            v-if="plot"
             class="overflow-hidden"
             role="img"
             :aria-label="`${x.values.length} 个数据点的散点图和线性回归直线`"
@@ -152,25 +164,25 @@ function clear() {
               <line x1="56" y1="20" x2="56" y2="310" stroke="currentColor" />
               <line x1="56" y1="310" x2="616" y2="310" stroke="currentColor" />
               <text x="56" y="333" text-anchor="middle" fill="currentColor" font-size="13">
-                {{ format(plot!.labels.minX) }}
+                {{ format(plot.labels.minX) }}
               </text>
               <text x="616" y="333" text-anchor="middle" fill="currentColor" font-size="13">
-                {{ format(plot!.labels.maxX) }}
+                {{ format(plot.labels.maxX) }}
               </text>
               <text x="46" y="314" text-anchor="end" fill="currentColor" font-size="13">
-                {{ format(plot!.labels.minY) }}
+                {{ format(plot.labels.minY) }}
               </text>
               <text x="46" y="24" text-anchor="end" fill="currentColor" font-size="13">
-                {{ format(plot!.labels.maxY) }}
+                {{ format(plot.labels.maxY) }}
               </text>
               <line
-                v-bind="plot!.line"
+                v-bind="plot.line"
                 class="text-primary"
                 stroke="currentColor"
                 stroke-width="2"
               />
               <circle
-                v-for="(point, index) in plot!.points"
+                v-for="(point, index) in plot.points"
                 :key="index"
                 :cx="point.x"
                 :cy="point.y"
