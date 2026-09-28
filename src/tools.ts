@@ -87,28 +87,16 @@ const toolGroupsBase = [
     title: '编解码工具',
     tools: [
       {
-        path: '/codec/base64',
-        title: 'Base64 文本',
-        description: '在 UTF-8 文本与 Base64 之间转换。',
-        component: () => import('@/pages/codec/Base64Page.vue'),
+        path: '/codec',
+        title: '文本编解码',
+        description: '在 Base64 文本、URL 编码、Punycode 域名之间双向转换与粘贴自动检测。',
+        component: () => import('@/pages/codec/CodecPage.vue'),
       },
       {
         path: '/codec/base64img',
         title: 'Base64 图片',
         description: '在图片文件与 Data URL 之间转换。',
         component: () => import('@/pages/codec/Base64ImagePage.vue'),
-      },
-      {
-        path: '/codec/urlcodec',
-        title: 'URL 编解码',
-        description: '对 URL 组件进行编码和解码。',
-        component: () => import('@/pages/codec/UrlCodecPage.vue'),
-      },
-      {
-        path: '/codec/punycode',
-        title: 'Punycode 编解码',
-        description: '在 Unicode 域名与 Punycode ASCII 表示之间转换。',
-        component: () => import('@/pages/codec/PunycodePage.vue'),
       },
       {
         path: '/codec/unicode-english',

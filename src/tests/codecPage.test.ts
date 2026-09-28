@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
 import { mount } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
-import Base64Page from '@/pages/codec/Base64Page.vue';
+import CodecPage from '@/pages/codec/CodecPage.vue';
 
-describe('Base64 页面', () => {
+describe('编解码页面', () => {
   it('随原文输入更新编码，并对无效编码保留原文', async () => {
-    const wrapper = mount(Base64Page, {
+    const wrapper = mount(CodecPage, {
       global: {
         stubs: { ToolPage: { template: '<div><slot /></div>' } },
       },
