@@ -40,9 +40,6 @@ function emptyCells(): Record<ContingencyKey, string> {
 }
 
 const cells = ref(emptyCells());
-const inputVersions = ref(
-  Object.fromEntries(contingencyKeys.map((key) => [key, 0])) as Record<ContingencyKey, number>
-);
 const hasInput = computed(() => contingencyKeys.some((key) => cells.value[key] !== ''));
 const invalidKeys = computed(() =>
   contingencyKeys.filter((key) => {
@@ -114,12 +111,18 @@ const associationFormula = computed(() => {
 });
 
 function displayValue(key: ContingencyKey) {
-  return cells.value[key] !== '' ? cells.value[key] : (solution.value.values[key] ?? '');
+  const raw = cells.value[key];
+  if (raw !== '') return raw;
+  // 仅派生 key（ab/cd/ac/bd/n）允许 fallback 到 solution 的解出值；
+  // 核心分项 a/b/c/d 清空时直接显示空，避免立刻被派生解出的值重新填回。
+  if (solution.value.derivedKeys.includes(key)) {
+    return String(solution.value.values[key] ?? '');
+  }
+  return '';
 }
 
 function setCell(key: ContingencyKey, value: string | number) {
   cells.value[key] = String(value);
-  if (value === '') inputVersions.value[key]++;
 }
 
 function isInvalid(key: ContingencyKey) {
@@ -146,7 +149,6 @@ function clear() {
               <label v-for="key in row" :key="key" :for="`cell-${key}`" class="space-y-1">
                 <span class="text-sm font-medium">{{ labels[key] }}</span>
                 <Input
-                  :key="inputVersions[key]"
                   :id="`cell-${key}`"
                   :model-value="displayValue(key)"
                   type="number"
