@@ -87,8 +87,8 @@ const toolGroupsBase = [
     title: '编解码工具',
     tools: [
       {
-        path: '/codec',
-        title: '文本编解码',
+        path: '/convert',
+        title: '文本转换',
         description: '在 Base64 文本、URL 编码、Punycode 域名之间双向转换与粘贴自动检测。',
         component: () => import('@/pages/codec/CodecPage.vue'),
       },
