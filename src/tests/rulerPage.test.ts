@@ -11,9 +11,7 @@ const stubs = {
   CardDescription: { template: '<p><slot /></p>' },
   CardContent: { template: '<div><slot /></div>' },
   Button: { template: '<button @click="$emit(\'click\')"><slot /></button>' },
-  Input: { template: '<input />' },
-  RadioGroup: { template: '<div />' },
-  Select: { template: '<div />' },
+  PpiSourceEditor: { template: '<div />' },
 };
 
 describe('RulerPage', () => {
