@@ -34,33 +34,37 @@ const hexagrams = computed(() =>
 const { copyPending, clipboardError, copyText } = useClipboardActions();
 
 const resultText = computed(() => {
-  if (!result.value || !reading.value || !originalText.value || !changedText.value) return '';
+  const r = result.value;
+  const rd = reading.value;
+  const original = originalText.value;
+  const changed = changedText.value;
+  if (!r || !rd || !original || !changed) return '';
   const describe = (hexagram: Hexagram) =>
     `${hexagram.name}（${hexagram.upperTrigram.image}${hexagram.upperTrigram.name}上·${hexagram.lowerTrigram.image}${hexagram.lowerTrigram.name}下）`;
-  const lines = result.value.positiveCounts.map(
+  const lines = r.positiveCounts.map(
     (count, index) =>
-      `${lineLabels[index]}：${result.value!.tosses[index].map((positive) => (positive ? '正' : '反')).join('、')}（${yaoNames[count]}）`
+      `${lineLabels[index]}：${r.tosses[index].map((positive) => (positive ? '正' : '反')).join('、')}（${yaoNames[count]}）`
   );
-  const movingLines = reading.value.changingLines.flatMap((line) => [
-    `动爻爻辞：${originalText.value!.lines[line - 1]}`,
-    `小象传：${originalText.value!.xiaoxiang[line - 1]}`,
+  const movingLines = rd.changingLines.flatMap((line) => [
+    `动爻爻辞：${original.lines[line - 1]}`,
+    `小象传：${original.xiaoxiang[line - 1]}`,
   ]);
   return [
-    `本卦：${describe(reading.value.original)}`,
-    `变卦：${describe(reading.value.changed)}`,
-    `互卦：${describe(reading.value.mutual)}`,
-    `动爻：${reading.value.changingLines.length ? reading.value.changingLines.map((line) => lineLabels[line - 1]).join('、') : '无'}`,
+    `本卦：${describe(rd.original)}`,
+    `变卦：${describe(rd.changed)}`,
+    `互卦：${describe(rd.mutual)}`,
+    `动爻：${rd.changingLines.length ? rd.changingLines.map((line) => lineLabels[line - 1]).join('、') : '无'}`,
     '',
     ...lines,
     '',
-    `本卦卦辞：${originalText.value.guaci}`,
+    `本卦卦辞：${original.guaci}`,
     ...movingLines,
-    `变卦卦辞：${changedText.value.guaci}`,
+    `变卦卦辞：${changed.guaci}`,
   ].join('\n');
 });
 
-function cast(event: MouseEvent) {
-  coinTosses.value = castCoins(event.timeStamp).tosses;
+function cast() {
+  coinTosses.value = castCoins().tosses;
   hasResult.value = true;
 }
 
@@ -87,7 +91,7 @@ function lineResult(coins: boolean[]) {
           <p>三枚铜钱连掷六次，自下而上成卦。</p>
           <p class="mt-1">三正、三反为动爻；两正或两反为静爻。</p>
         </div>
-        <Button size="sm" class="w-full sm:w-auto" @click="cast($event)">{{
+        <Button size="sm" class="w-full sm:w-auto" @click="cast">{{
           result ? '重新起卦' : '开始起卦'
         }}</Button>
       </CardContent>

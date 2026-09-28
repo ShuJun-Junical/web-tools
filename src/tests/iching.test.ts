@@ -26,13 +26,17 @@ describe('周易起卦', () => {
     ]).toEqual([0, 1, 2, 3]);
   });
 
-  it('将用户点击时刻混入随机结果', () => {
+  it('随机性来自 crypto.getRandomValues', () => {
     const random = vi.spyOn(globalThis.crypto, 'getRandomValues').mockImplementation((array) => {
       new Uint8Array(array.buffer, array.byteOffset, array.byteLength).fill(0);
       return array;
     });
-    expect(castCoins(0).tosses[0][0]).toBe(false);
-    expect(castCoins(0.001).tosses[0][0]).toBe(true);
+    const result = castCoins();
+    expect(result.tosses).toHaveLength(6);
+    result.tosses.forEach((coins) => {
+      expect(coins).toHaveLength(3);
+      coins.forEach((positive) => expect(positive).toBe(false));
+    });
     random.mockRestore();
   });
 
