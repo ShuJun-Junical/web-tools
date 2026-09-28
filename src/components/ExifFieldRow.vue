@@ -7,8 +7,21 @@ import { Tooltip } from '@/components/ui/tooltip';
 import { fieldInfoFor } from '@/lib/exif-presets';
 import type { ExifField } from '@/lib/exif-types';
 
-const props = defineProps<{ field: ExifField; editing: boolean; busy: boolean; locked: boolean }>();
-const emit = defineEmits<{ edit: []; apply: [value: string]; remove: []; cancel: [] }>();
+const props = defineProps<{
+  field: ExifField;
+  busy: boolean;
+  locked: boolean;
+  /** true 时显示编辑按钮与编辑面板（无 key 列）；false 时显示 key 列且不可编辑 */
+  editable?: boolean;
+  /** 仅 editable=true 时使用：当前是否处于编辑态 */
+  editing?: boolean;
+}>();
+const emit = defineEmits<{
+  edit: [];
+  apply: [value: string];
+  remove: [];
+  cancel: [];
+}>();
 
 const draft = ref('');
 watch(
@@ -19,11 +32,16 @@ watch(
 );
 const composite = computed(() => /^[[{]/.test(props.field.value));
 const info = computed(() => fieldInfoFor(props.field.name));
+const gridCols = computed(() =>
+  props.editable
+    ? 'sm:grid-cols-[13rem_minmax(0,1fr)_auto]'
+    : 'sm:grid-cols-[10rem_12rem_minmax(0,1fr)_auto]'
+);
 </script>
 
 <template>
   <div class="border-b py-1.5 last:border-b-0">
-    <div class="grid items-center gap-x-3 gap-y-1 sm:grid-cols-[13rem_minmax(0,1fr)_auto]">
+    <div class="grid items-center gap-x-3 gap-y-1" :class="gridCols">
       <div class="min-w-0">
         <p class="flex items-center gap-1.5 truncate text-sm font-medium" :title="field.key">
           {{ info?.label ?? field.name }}
@@ -40,13 +58,18 @@ const info = computed(() => fieldInfoFor(props.field.name));
             {{ info?.description }}
           </Tooltip>
         </p>
-        <p v-if="info" class="truncate font-mono text-xs text-muted-foreground/70">
-          {{ field.name }}
+        <p v-if="!editable && info" class="truncate font-mono text-xs text-muted-foreground/70">
+          {{ field.key }}
         </p>
       </div>
       <p class="truncate text-sm text-muted-foreground" :title="field.value">{{ field.value }}</p>
       <div class="flex justify-end gap-1">
-        <Button variant="ghost" size="sm" :disabled="busy || locked" @click="emit('edit')"
+        <Button
+          v-if="editable"
+          variant="ghost"
+          size="sm"
+          :disabled="busy || locked"
+          @click="emit('edit')"
           >编辑</Button
         >
         <Button
@@ -59,7 +82,7 @@ const info = computed(() => fieldInfoFor(props.field.name));
         >
       </div>
     </div>
-    <div v-if="editing" class="mt-2 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
+    <div v-if="editable && editing" class="mt-2 grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
       <Input v-model="draft" :aria-label="`修改 ${field.name}`" />
       <div class="flex gap-1">
         <Button size="sm" :disabled="busy" @click="emit('apply', draft)">应用</Button>
