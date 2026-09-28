@@ -2,6 +2,12 @@ import { reactive, ref } from 'vue';
 
 type ToastVariant = 'success' | 'error';
 
+/** variant 与渲染层样式、背景类的映射；新增变体时只改这一张表。 */
+export const TOAST_VARIANT_STYLE: Record<ToastVariant, { rekaType: 'foreground' | 'background'; bgClass: string }> = {
+  error: { rekaType: 'foreground', bgClass: 'bg-destructive' },
+  success: { rekaType: 'background', bgClass: 'bg-primary' },
+};
+
 export interface ToastItem {
   id: number;
   message: string;
