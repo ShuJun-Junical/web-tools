@@ -61,7 +61,10 @@ const lunarDayNames = [
 ];
 const minSolarDate = new CalendarDate(1900, 1, 1);
 const maxSolarDate = new CalendarDate(2100, 12, 31);
-const solarDate = shallowRef<CalendarDate | null>(null);
+
+// 唯一真实日期：公历侧 ref，农历通过 3 个 v-model ref 暴露给 Combobox；
+// selectedDate 与 lunarYear/Month/Day 互写，syncing 锁防回环。
+const selectedDate = shallowRef<CalendarDate | null>(null);
 const lunarYear = ref('');
 const lunarMonth = ref('');
 const lunarDay = ref('');
@@ -100,25 +103,23 @@ const lunarSummary = computed(() =>
     : ''
 );
 
-function setLunar(lunar: Lunar) {
-  lunarYear.value = String(lunar.getYear());
-  lunarMonth.value = String(lunar.getMonth());
-  lunarDay.value = String(lunar.getDay());
-}
-
+/** 公历变更 → 算 lunar → 同步农历 3 ref + 5 model。 */
 function useSolar(value: CalendarDate | null) {
   if (!value || syncing) return;
   syncing = true;
   const lunar = Solar.fromYmd(value.year, value.month, value.day).getLunar();
-  setLunar(lunar);
-  calendar.value = 'solar';
+  lunarYear.value = String(lunar.getYear());
+  lunarMonth.value = String(lunar.getMonth());
+  lunarDay.value = String(lunar.getDay());
   year.value = String(value.year);
   month.value = String(value.month);
   day.value = String(value.day);
   leapMonth.value = false;
+  calendar.value = 'solar';
   syncing = false;
 }
 
+/** 农历 3 ref 变更 → 算 solar → 同步 selectedDate + 5 model。 */
 function useLunar() {
   if (syncing || !lunarYear.value || !lunarMonth.value || !lunarDay.value) return;
   if (!selectedLunarMonth.value || Number(lunarDay.value) > selectedLunarMonth.value.days) return;
@@ -135,13 +136,12 @@ function useLunar() {
     return;
   syncing = true;
   const solar = lunar.getSolar();
-  solarDate.value = new CalendarDate(solar.getYear(), solar.getMonth(), solar.getDay());
-  setLunar(lunar);
-  calendar.value = 'lunar';
+  selectedDate.value = new CalendarDate(solar.getYear(), solar.getMonth(), solar.getDay());
   year.value = lunarYear.value;
   month.value = String(Math.abs(Number(lunarMonth.value)));
   day.value = lunarDay.value;
   leapMonth.value = Number(lunarMonth.value) < 0;
+  calendar.value = 'lunar';
   syncing = false;
 }
 
@@ -161,7 +161,7 @@ function resolveLunarDay(input: string) {
   return /^\d{1,2}$/.test(input) && lunarDays.value.includes(value) ? String(value) : undefined;
 }
 
-watch(solarDate, useSolar, { flush: 'sync' });
+watch(selectedDate, useSolar, { flush: 'sync' });
 watch([lunarYear, lunarMonth, lunarDay], useLunar, { flush: 'sync' });
 watch(lunarMonths, (months) => {
   if (lunarMonth.value && !months.some((item) => item.value === lunarMonth.value))
@@ -178,7 +178,7 @@ watch(lunarDays, (days) => {
       <span class="block">公历日期</span>
       <DatePicker
         class="mt-2"
-        v-model="solarDate"
+        v-model="selectedDate"
         :min-value="minSolarDate"
         :max-value="maxSolarDate"
         label="公历日期"
