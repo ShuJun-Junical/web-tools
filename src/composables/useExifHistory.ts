@@ -13,7 +13,9 @@ export function useExifHistory() {
   const current = computed(() => (index.value >= 0 ? stack.value[index.value] : null));
   const canUndo = computed(() => index.value > 0);
   const canRedo = computed(() => index.value < stack.value.length - 1);
-  const dirty = computed(() => stack.value.length > 1);
+  const dirty = computed(
+    () => index.value > 0 && stack.value.length > 0
+  );
   const initialEntry = computed(() => stack.value[0] ?? null);
 
   function init(initial: ExifResult) {

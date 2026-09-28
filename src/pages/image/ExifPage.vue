@@ -48,6 +48,8 @@ const groupItems = tagGroups.map((value) => ({ value, label: value }));
 const dropZone = ref<HTMLElement | null>(null);
 const original = shallowRef<File | null>(null);
 const historyApi = useExifHistory();
+const { current, canUndo, canRedo, dirty, initialEntry, init, push, undo, redo, resetToInitial } =
+  historyApi;
 const previewUrl = ref('');
 const originalUrl = ref('');
 const showOriginal = ref(false);
@@ -85,7 +87,7 @@ const addForm = reactive({
   touched: false,
 });
 const confirmOpen = ref(false);
-const confirmKind = ref<'replace'>('replace');
+const confirmKind = ref<'replace' | 'reset'>('replace');
 const pendingFile = shallowRef<File | null>(null);
 let worker: Worker | null = null;
 let requestId = 0;
@@ -125,7 +127,7 @@ const downloadName = computed(() => {
   return dot > 0 ? `${name.slice(0, dot)}-edited${name.slice(dot)}` : `${name}-edited`;
 });
 const filteredFields = computed(() =>
-  (historyApi.current.value?.fields ?? []).filter((field) => {
+  (current.value?.fields ?? []).filter((field) => {
     if (groupFilter.value !== 'all' && field.group !== groupFilter.value) return false;
     const search = query.value.trim().toLowerCase();
     return !search || `${field.key} ${field.value}`.toLowerCase().includes(search);
@@ -145,18 +147,18 @@ const otherGroups = computed(() => {
   return [...groups].map(([name, fields]) => ({ name, fields }));
 });
 const allGroups = computed(() => [
-  ...new Set((historyApi.current.value?.fields ?? []).map((field) => field.group)),
+  ...new Set((current.value?.fields ?? []).map((field) => field.group)),
 ]);
 const filterItems = computed(() => [
   { value: 'all', label: '全部来源' },
   ...allGroups.value.map((value) => ({ value, label: value })),
 ]);
 const gpsPresent = computed(() =>
-  (historyApi.current.value?.fields ?? []).some(
+  (current.value?.fields ?? []).some(
     (field) => field.group === 'GPS' || /GPSLatitude|GPSLongitude|LocationShown/i.test(field.name)
   )
 );
-const unknownBlocks = computed(() => (historyApi.current.value?.blocks ?? []).filter((block) => !block.known));
+const unknownBlocks = computed(() => (current.value?.blocks ?? []).filter((block) => !block.known));
 const originalSigned = computed(() => historyApi.initialEntry.value?.signed ?? false);
 
 const effectiveGroup = computed(() =>
@@ -183,15 +185,15 @@ const rawBlockHexInfo = computed(
     `当前 ${hexByteCount(rawForm.hex)} 字节${rawForm.large ? '；该块较大，建议优先使用字段级写入' : ''}`
 );
 const newBlockErrorText = computed(() => {
-  if (!historyApi.current.value || (!newBlockForm.kind.trim() && !newBlockForm.hex.trim())) return '';
-  return newBlockValidationError(historyApi.current.value.format, newBlockForm.kind, newBlockForm.hex);
+  if (!current.value || (!newBlockForm.kind.trim() && !newBlockForm.hex.trim())) return '';
+  return newBlockValidationError(current.value.format, newBlockForm.kind, newBlockForm.hex);
 });
 
 watch(() => addForm.type, (value) => {
   if (!dataTypeOptions.value.includes(value)) addForm.type = 'string';
 });
 
-watch(historyApi.current, (value) => {
+watch(current, (value) => {
   if (previewUrl.value) URL.revokeObjectURL(previewUrl.value);
   previewUrl.value = value ? URL.createObjectURL(value.file) : '';
   previewFailed.value = false;
@@ -286,7 +288,7 @@ function offerFile(file: File) {
     error.value = '仅支持 JPEG、PNG 和 WebP 文件；HEIC、AVIF 暂未开放。';
     return;
   }
-  if (historyApi.dirty.value) {
+  if (dirty.value) {
     pendingFile.value = file;
     confirmKind.value = 'replace';
     confirmOpen.value = true;
@@ -326,9 +328,9 @@ async function loadFile(file: File) {
 }
 
 async function apply(action: ExifOperation) {
-  if (!historyApi.current.value || !original.value || busy.value) return;
+  if (!current.value || !original.value || busy.value) return;
   try {
-    const result = await run({ ...action, file: historyApi.current.value.file, original: original.value });
+    const result = await run({ ...action, file: current.value.file, original: original.value });
     historyApi.push(result);
     editKey.value = '';
     rawForm.blockId = '';
@@ -342,11 +344,9 @@ async function apply(action: ExifOperation) {
   }
 }
 
-function undo() {
-  historyApi.undo();
-}
-function redo() {
-  historyApi.redo();
+function askReset() {
+  confirmKind.value = 'reset';
+  confirmOpen.value = true;
 }
 function resetToOriginal() {
   historyApi.resetToInitial();
@@ -354,6 +354,7 @@ function resetToOriginal() {
 }
 function confirmChoice() {
   if (confirmKind.value === 'replace' && pendingFile.value) void loadFile(pendingFile.value);
+  if (confirmKind.value === 'reset') resetToOriginal();
   pendingFile.value = null;
   confirmOpen.value = false;
 }
@@ -379,10 +380,10 @@ function addField() {
   });
 }
 async function startRaw(id: string) {
-  if (!historyApi.current.value) return;
-  const block = historyApi.current.value.blocks.find((item) => item.id === id);
+  if (!current.value) return;
+  const block = current.value.blocks.find((item) => item.id === id);
   if (!block) return;
-  const bytes = new Uint8Array(await historyApi.current.value.file.arrayBuffer());
+  const bytes = new Uint8Array(await current.value.file.arrayBuffer());
   rawForm.blockId = id;
   rawForm.large = block.dataEnd - block.dataStart > largeBlockBytes;
   rawForm.hex = bytesToHex(bytes.subarray(block.dataStart, block.dataEnd));
@@ -394,7 +395,7 @@ function toggleAll() {
       : otherGroups.value.map((group) => group.name);
 }
 function download() {
-  if (!historyApi.current.value || busy.value) return;
+  if (!current.value || busy.value) return;
   const link = document.createElement('a');
   link.href = previewUrl.value;
   link.download = downloadName.value;
@@ -416,7 +417,7 @@ function download() {
             class="flex min-h-72 items-center justify-center overflow-hidden rounded-xl border border-dashed p-4"
             :class="isOverDropZone ? 'border-primary bg-accent' : 'border-border'"
           >
-            <div v-if="!historyApi.current.value" class="flex flex-col items-center gap-2 text-center">
+            <div v-if="!current" class="flex flex-col items-center gap-2 text-center">
               <ImageUp class="size-8 text-muted-foreground" aria-hidden="true" />
               <p>选择、拖入或粘贴一张 JPEG、PNG、WebP 图片</p>
               <Button :disabled="busy" @click="open()">选择图片</Button>
@@ -439,19 +440,19 @@ function download() {
             }}</Button>
             <Button
               variant="outline"
-              :disabled="busy || !historyApi.canUndo"
+              :disabled="busy || !canUndo"
               aria-label="撤销"
-              @click="undo"
+              @click="undo()"
               ><RotateCcw />撤销</Button
             >
             <Button
               variant="outline"
-              :disabled="busy || !historyApi.canRedo"
+              :disabled="busy || !canRedo"
               aria-label="重做"
-              @click="redo"
+              @click="redo()"
               ><RotateCw />重做</Button
             >
-            <Button variant="outline" :disabled="busy || !historyApi.dirty" @click="resetToOriginal"
+            <Button variant="outline" :disabled="busy || !dirty" @click="askReset"
               >恢复原文件</Button
             >
             <Button :disabled="busy" @click="download">下载待保存文件</Button>
@@ -459,7 +460,7 @@ function download() {
         </CardContent>
       </Card>
 
-      <div v-if="historyApi.current.value || busy || error" class="flex min-h-14 flex-col justify-center gap-2">
+      <div v-if="current || busy || error" class="flex min-h-14 flex-col justify-center gap-2">
         <div
           v-if="busy"
           role="status"
@@ -476,14 +477,14 @@ function download() {
         <Card>
           <CardHeader><CardTitle>当前待保存状态</CardTitle></CardHeader>
           <CardContent class="grid gap-2 text-sm sm:grid-cols-2">
-            <p>格式：{{ historyApi.current.value?.format.toUpperCase() }}{{ historyApi.current.value?.animated ? ' · 动画' : '' }}</p>
+            <p>格式：{{ current?.format.toUpperCase() }}{{ current?.animated ? ' · 动画' : '' }}</p>
             <p>GPS：{{ gpsPresent ? '存在' : '未发现' }}</p>
-            <p>字段：{{ historyApi.current.value?.fields.length }} 项；未知附加块：{{ unknownBlocks.length }} 个</p>
+            <p>字段：{{ current?.fields.length }} 项；未知附加块：{{ unknownBlocks.length }} 个</p>
             <p>
               图像数据：{{
-                historyApi.current.value?.imageUnchanged === true
+                current?.imageUnchanged === true
                   ? '与原文件一致'
-                  : historyApi.current.value?.imageUnchanged === false
+                  : current?.imageUnchanged === false
                     ? '已改变'
                     : '无法确认'
               }}
@@ -493,11 +494,11 @@ function download() {
                 modified ? '当前修改可能使签名失效或已将其移除。' : '修改文件后签名可能失效。'
               }}
             </p>
-            <p v-if="historyApi.current.value?.unsupportedMultiImage" class="sm:col-span-2 text-destructive">
+            <p v-if="current?.unsupportedMultiImage" class="sm:col-span-2 text-destructive">
               此多图 JPEG 变体仅支持查看，暂不支持编辑导出。
             </p>
-            <p v-if="historyApi.current.value?.warning" role="alert" class="sm:col-span-2 text-destructive">
-              {{ historyApi.current.value?.warning }}
+            <p v-if="current?.warning" role="alert" class="sm:col-span-2 text-destructive">
+              {{ current?.warning }}
             </p>
             <p v-if="unknownBlocks.length" class="sm:col-span-2 text-muted-foreground">
               未知附加块将在普通清理中保留；强力清理会移除。
@@ -510,13 +511,13 @@ function download() {
           <CardContent class="flex flex-col gap-3">
             <div class="flex flex-wrap gap-2">
               <Button
-                :disabled="busy || historyApi.current.value?.unsupportedMultiImage"
+                :disabled="busy || current?.unsupportedMultiImage"
                 @click="apply({ type: 'clear', mode: 'normal' })"
                 >普通清理</Button
               >
               <Button
                 variant="destructive"
-                :disabled="busy || historyApi.current.value?.unsupportedMultiImage"
+                :disabled="busy || current?.unsupportedMultiImage"
                 @click="apply({ type: 'clear', mode: 'strong' })"
                 >强力清理</Button
               >
@@ -545,7 +546,7 @@ function download() {
               :key="field.key"
               :field="field"
               :busy="busy"
-              :locked="historyApi.current.value?.unsupportedMultiImage"
+              :locked="!!current?.unsupportedMultiImage"
               @remove="removeField(field)"
             />
           </CardContent>
@@ -589,7 +590,7 @@ function download() {
                     :key="field.key"
                     :field="field"
                     :busy="busy"
-                    :locked="historyApi.current.value?.unsupportedMultiImage"
+                    :locked="!!current?.unsupportedMultiImage"
                     :editable="true"
                     :editing="editKey === field.key"
                     @edit="startEdit(field)"
@@ -645,7 +646,7 @@ function download() {
               </p>
               <Button
                 class="self-start"
-                :disabled="busy || historyApi.current.value?.unsupportedMultiImage"
+                :disabled="busy || current?.unsupportedMultiImage"
                 @click="addField"
                 >新增字段</Button
               >
@@ -661,7 +662,7 @@ function download() {
             ></CardHeader
           >
           <CardContent class="flex flex-col gap-3">
-            <div v-for="block in historyApi.current.value?.blocks" :key="block.id" class="rounded-lg border p-3">
+            <div v-for="block in current?.blocks" :key="block.id" class="rounded-lg border p-3">
               <div class="flex flex-wrap items-center justify-between gap-2">
                 <p class="text-sm">
                   <strong>{{ block.label }}</strong> · {{ block.dataEnd - block.dataStart }} 字节{{
@@ -672,7 +673,7 @@ function download() {
                   v-if="block.kind !== 'Trailer'"
                   variant="outline"
                   size="sm"
-                  :disabled="busy || historyApi.current.value?.unsupportedMultiImage"
+                  :disabled="busy || current?.unsupportedMultiImage"
                   @click="startRaw(block.id)"
                   >编辑原始块</Button
                 >
@@ -729,7 +730,7 @@ function download() {
               </p>
               <Button
                 class="self-start"
-                :disabled="busy || historyApi.current.value?.unsupportedMultiImage"
+                :disabled="busy || current?.unsupportedMultiImage"
                 @click="apply({ type: 'addBlock', kind: newBlockForm.kind, hex: newBlockForm.hex })"
                 >新增原始块</Button
               >
@@ -745,7 +746,9 @@ function download() {
         <AlertDialogContent
           class="fixed top-1/2 left-1/2 z-50 w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2 -translate-y-1/2 rounded-lg border bg-background p-6 shadow-lg"
         >
-          <AlertDialogTitle class="text-lg font-semibold">替换当前图片？</AlertDialogTitle>
+          <AlertDialogTitle class="text-lg font-semibold">{{
+            confirmKind === 'replace' ? '替换当前图片？' : '恢复原文件？'
+          }}</AlertDialogTitle>
           <AlertDialogDescription class="mt-2 text-sm text-muted-foreground"
             >当前修改及撤销历史将丢失。</AlertDialogDescription
           >
