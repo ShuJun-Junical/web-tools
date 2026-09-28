@@ -1,9 +1,15 @@
 <script setup lang="ts">
 import { ToastDescription, ToastProvider, ToastRoot, ToastViewport } from 'reka-ui';
-import { TOAST_DURATION, useToast, type ToastItem } from '@/composables/useToast';
+import {
+  TOAST_DURATION,
+  TOAST_VARIANT_STYLE,
+  useToast,
+  type ToastItem,
+} from '@/composables/useToast';
 import { useToastMove } from '@/composables/useToastMove';
 
 const { toasts, closeToast, handleToastLeft } = useToast();
+const styleFor = (variant: ToastItem['variant']) => TOAST_VARIANT_STYLE[variant];
 
 // 宿主自身不会因队列变化 re-render（插槽依赖被 reka 的 ToastViewport 收集），
 // 所以位移补间挂在队列变化上，不能用 onBeforeUpdate/onUpdated。
@@ -30,11 +36,11 @@ function onToastAnimationEnd(toast: ToastItem) {
         v-for="(toast, index) in toasts"
         :key="toast.id"
         :open="toast.open"
-        :type="toast.variant === 'error' ? 'foreground' : 'background'"
+        :type="styleFor(toast.variant).rekaType"
         :data-toast-id="toast.id"
         :style="{ order: -index }"
         class="toast-root rounded-lg px-4 py-3 text-sm text-white shadow-lg"
-        :class="toast.variant === 'error' ? 'bg-destructive' : 'bg-primary'"
+        :class="styleFor(toast.variant).bgClass"
         @update:open="(open) => !open && closeToast(toast)"
         @animationend="onToastAnimationEnd(toast)"
       >
