@@ -380,6 +380,8 @@ watch(form, updateResult, { immediate: true });
         </CardContent>
       </Card>
 
+      <!-- TODO(命理解读): 暂未实现；待明确旺衰、格局、合化和喜忌用神的流派与可核验规则后再补。
+           卡片结构保留以便恢复，HTML 注释让模板跳过渲染，源码仍可读。
       <Card class="border-dashed">
         <CardHeader><CardTitle>命理解读</CardTitle></CardHeader>
         <CardContent
@@ -388,6 +390,7 @@ watch(form, updateResult, { immediate: true });
           </p></CardContent
         >
       </Card>
+      -->
     </template>
   </ToolPage>
 </template>
