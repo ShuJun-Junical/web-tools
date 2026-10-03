@@ -159,6 +159,21 @@ RULES: list[Rule] = [
         severity=Severity.BLOCKER,
     ),
     Rule(
+        name="疑似真实区划码的证件示例",
+        # 身份证前 2 位是省级行政区划代码。真实区划码即使拼在合成示例里，
+        # 也会泄露籍贯与出生年——这类串常因日期或校验位无效而被降级为
+        # INFO 从而隐身，因此单列一条 WARNING 级规则兜底。
+        # 此处刻意不校验日期与校验位：正是要覆盖日期不合法的情况。
+        pattern=re.compile(
+            r"(?<![0-9A-Za-z])"
+            r"(?:1[1-5]|2[1-3]|3[1-7]|4[1-6]|5[0-4]|6[1-5]|7[1]|8[12])"
+            r"[0-9]{4}(?:19|20)[0-9]{2}[0-9]{4}[0-9]{3}[0-9Xx]"
+            r"(?![0-9A-Za-z])"
+        ),
+        reason="示例串带真实省级区划码,可推出籍贯与出生年份",
+        severity=Severity.WARNING,
+    ),
+    Rule(
         name="统一社会信用代码",
         # USCC 排除 I/O/S/V/Z 四个易混淆字符,借此避免误匹配哈希值
         pattern=re.compile(r"(?<![0-9A-Z])[0-9A-HJ-NP-RT-UW-Y]{18}(?![0-9A-Z])"),
@@ -285,10 +300,13 @@ def scan_text(text: str, location: str) -> Iterator[Finding]:
                     severity = Severity.INFO  # 校验位不符 → 多半是合成数据
                 if in_public_dir(location):
                     severity = Severity.INFO  # 财政部公开文档
-                claimed.append(span)
                 snippet = line.strip()
                 if len(snippet) > 90:
                     snippet = snippet[:90] + "…"
+                if severity > Severity.INFO:
+                    # 仅"需处理"的命中才占位。若高危规则因校验位/公开目录
+                    # 降级为 INFO 后仍占位，会把后续真正要报告的风险压制掉。
+                    claimed.append(span)
                 yield Finding(severity, location, line_no, rule.name, rule.reason, snippet)
 
 
