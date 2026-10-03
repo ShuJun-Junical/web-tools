@@ -1,0 +1,103 @@
+<!--
+      Taxonomy: 2023-12-31 (Final)
+      ********************** 
+        Copyright  2023 Ministry of Finance, China.
+        All rights reserved.  No part of this publication may be translated, reprinted or reproduced 
+        in any form either in whole or in part without prior permission in writing from the Ministry of Finance, China.
+      ********************** -->
+<xsd:schema targetNamespace="http://xbrl.mof.gov.cn/taxonomy/2023-12-31/rai" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:rai="http://xbrl.mof.gov.cn/taxonomy/2023-12-31/rai" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:gen="http://xbrl.org/2008/generic" xmlns:ref="http://www.xbrl.org/2006/ref" xmlns:num="http://www.xbrl.org/dtr/type/numeric" xmlns:nonnum="http://www.xbrl.org/dtr/type/non-numeric" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xmlns:label="http://xbrl.org/2008/label" xmlns:xl="http://www.xbrl.org/2003/XLink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:utr="http://www.xbrl.org/2009/utr" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <xsd:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+  <xsd:import namespace="http://www.xbrl.org/dtr/type/non-numeric" schemaLocation="http://www.xbrl.org/dtr/type/nonNumeric-2009-12-16.xsd"/>
+  <xsd:import namespace="http://www.xbrl.org/dtr/type/numeric" schemaLocation="http://www.xbrl.org/dtr/type/numeric-2009-12-16.xsd"/>
+  <xsd:import namespace="http://xbrl.org/2005/xbrldt" schemaLocation="http://www.xbrl.org/2005/xbrldt-2005.xsd"/>
+  <xsd:element name="IssuerInformationOfElectronicInvoiceRailwayETicketAbstract" id="rai_IssuerInformationOfElectronicInvoiceRailwayETicketAbstract" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="true" nillable="true" xbrli:periodType="duration"/>
+  <xsd:element name="HeaderInformationOfElectronicInvoiceRailwayETicketAbstract" id="rai_HeaderInformationOfElectronicInvoiceRailwayETicketAbstract" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="true" nillable="true" xbrli:periodType="duration"/>
+  <xsd:element name="TypeOfVoucher" id="rai_TypeOfVoucher" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="ElectronicInvoiceRailwayETicketNumber" id="rai_ElectronicInvoiceRailwayETicketNumber" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="DateOfIssue" id="rai_DateOfIssue" type="xbrli:dateItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="IssueParty" id="rai_IssueParty" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="IssuePartyCode" id="rai_IssuePartyCode" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="TypeOfBusiness" id="rai_TypeOfBusiness" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="InformationOfRailwayTicketAbstract" id="rai_InformationOfRailwayTicketAbstract" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="true" nillable="true" xbrli:periodType="duration"/>
+  <xsd:element name="DepartureStation" id="rai_DepartureStation" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="PhonicsOfDepartureStation" id="rai_PhonicsOfDepartureStation" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="DestinationStation" id="rai_DestinationStation" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="PhonicsOfDestinationStation" id="rai_PhonicsOfDestinationStation" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="TrainNumber" id="rai_TrainNumber" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="TravelDate" id="rai_TravelDate" type="xbrli:dateItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="DepartureTime" id="rai_DepartureTime" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="TypeOfRailwayTicket" id="rai_TypeOfRailwayTicket" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="AirConditioningCharacteristics" id="rai_AirConditioningCharacteristics" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="SeatLevel" id="rai_SeatLevel" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="Carriage" id="rai_Carriage" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="Seat" id="rai_Seat" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="DiscountMark" id="rai_DiscountMark" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="Fare" id="rai_Fare" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="AmountRefunded" id="rai_AmountRefunded" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="FareOfOriginalRailwayTicket" id="rai_FareOfOriginalRailwayTicket" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="DepartureStationOfOriginalRailwayTicket" id="rai_DepartureStationOfOriginalRailwayTicket" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="DestinationStationOfOriginalRailwayTicket" id="rai_DestinationStationOfOriginalRailwayTicket" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="ETicketNumber" id="rai_ETicketNumber" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="PassengerInformationAbstract" id="rai_PassengerInformationAbstract" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="true" nillable="true" xbrli:periodType="duration"/>
+  <xsd:element name="IdNumber" id="rai_IdNumber" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="Name" id="rai_Name" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="TaxInformationAbstract" id="rai_TaxInformationAbstract" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="true" nillable="true" xbrli:periodType="duration"/>
+  <xsd:element name="TotalAmountExcludingTax" id="rai_TotalAmountExcludingTax" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="TaxRate" id="rai_TaxRate" type="num:percentItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="TaxAmount" id="rai_TaxAmount" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="BasicInformationOfPurchaserAbstract" id="rai_BasicInformationOfPurchaserAbstract" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="true" nillable="true" xbrli:periodType="duration"/>
+  <xsd:element name="NameOfPurchaser" id="rai_NameOfPurchaser" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="UnifiedSocialCreditCodeOfPurchaser" id="rai_UnifiedSocialCreditCodeOfPurchaser" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="AddressPhoneNumberOfPurchaser" id="rai_AddressPhoneNumberOfPurchaser" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="DepositBankAndAccountNumberOfPurchaser" id="rai_DepositBankAndAccountNumberOfPurchaser" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="BasicInformationOfSellerAbstract" id="rai_BasicInformationOfSellerAbstract" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="true" nillable="true" xbrli:periodType="duration"/>
+  <xsd:element name="NameOfSeller" id="rai_NameOfSeller" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="UnifiedSocialCreditCodeOfSeller" id="rai_UnifiedSocialCreditCodeOfSeller" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="AddressPhoneNumberOfSeller" id="rai_AddressPhoneNumberOfSeller" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="DepositBankAndAccountNumberOfSeller" id="rai_DepositBankAndAccountNumberOfSeller" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="OtherInformationAbstract" id="rai_OtherInformationAbstract" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="true" nillable="true" xbrli:periodType="duration"/>
+  <xsd:element name="NumberOfOriginalInvoice" id="rai_NumberOfOriginalInvoice" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="Remarks" id="rai_Remarks" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="ReceiverInformationOfElectronicInvoiceRailwayETicketAbstract" id="rai_ReceiverInformationOfElectronicInvoiceRailwayETicketAbstract" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="true" nillable="true" xbrli:periodType="duration"/>
+  <xsd:element name="ElectronicInvoiceRailwayETicketStatusAbstract" id="rai_ElectronicInvoiceRailwayETicketStatusAbstract" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="true" nillable="true" xbrli:periodType="duration"/>
+  <xsd:element name="WhetherInvoiceIsRedInvoice" id="rai_WhetherInvoiceIsRedInvoice" type="xbrli:booleanItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="WhetherInvoiceHasBeenBooked" id="rai_WhetherInvoiceHasBeenBooked" type="xbrli:booleanItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="InvoiceDeductionInformationAbstract" id="rai_InvoiceDeductionInformationAbstract" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="true" nillable="true" xbrli:periodType="duration"/>
+  <xsd:element name="WhetherInvoiceHasBeenDeducted" id="rai_WhetherInvoiceHasBeenDeducted" type="xbrli:booleanItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="TaxPeriodOfInvoiceDeduction" id="rai_TaxPeriodOfInvoiceDeduction" type="xbrli:gYearMonthItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="AccountingEntityInformationAbstract" id="rai_AccountingEntityInformationAbstract" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="true" nillable="true" xbrli:periodType="duration"/>
+  <xsd:element name="UnifiedSocialCreditCodeOfAccountingEntity" id="rai_UnifiedSocialCreditCodeOfAccountingEntity" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="NameOfAccountingEntity" id="rai_NameOfAccountingEntity" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="BasicAccountingInformationAbstract" id="rai_BasicAccountingInformationAbstract" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="true" nillable="true" xbrli:periodType="duration"/>
+  <xsd:element name="InformationOfAccountingDocumentsTuple" id="rai_InformationOfAccountingDocumentsTuple" substitutionGroup="xbrli:tuple" abstract="false" nillable="true">
+    <xsd:complexType>
+      <xsd:sequence maxOccurs="unbounded">
+        <xsd:element maxOccurs="unbounded" ref="rai:NumberOfAccountingDocuments"/>
+        <xsd:element maxOccurs="unbounded" ref="rai:PostingDate"/>
+        <xsd:element maxOccurs="unbounded" ref="rai:AccountingPeriod"/>
+        <xsd:element maxOccurs="unbounded" ref="rai:SummaryOfAccountingDocuments"/>
+        <xsd:element maxOccurs="unbounded" ref="rai:InformationOfDebitAndCreditEntryTuple"/>
+      </xsd:sequence>
+      <xsd:attributeGroup ref="xbrli:tupleAttrs"/>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="NumberOfAccountingDocuments" id="rai_NumberOfAccountingDocuments" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="PostingDate" id="rai_PostingDate" type="xbrli:dateItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="AccountingPeriod" id="rai_AccountingPeriod" type="xbrli:gYearMonthItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="SummaryOfAccountingDocuments" id="rai_SummaryOfAccountingDocuments" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="InformationOfDebitAndCreditEntryTuple" id="rai_InformationOfDebitAndCreditEntryTuple" substitutionGroup="xbrli:tuple" abstract="false" nillable="true">
+    <xsd:complexType>
+      <xsd:sequence maxOccurs="unbounded">
+        <xsd:element maxOccurs="unbounded" ref="rai:DebitOrCredit"/>
+        <xsd:element maxOccurs="unbounded" ref="rai:NameOfGeneralLedgerSubject"/>
+        <xsd:element maxOccurs="unbounded" ref="rai:NameOfSubsidiaryLedgerSubject"/>
+        <xsd:element maxOccurs="unbounded" ref="rai:RecordedAmount"/>
+      </xsd:sequence>
+      <xsd:attributeGroup ref="xbrli:tupleAttrs"/>
+    </xsd:complexType>
+  </xsd:element>
+  <xsd:element name="DebitOrCredit" id="rai_DebitOrCredit" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="NameOfGeneralLedgerSubject" id="rai_NameOfGeneralLedgerSubject" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="NameOfSubsidiaryLedgerSubject" id="rai_NameOfSubsidiaryLedgerSubject" type="xbrli:stringItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+  <xsd:element name="RecordedAmount" id="rai_RecordedAmount" type="xbrli:monetaryItemType" substitutionGroup="xbrli:item" abstract="false" nillable="true" xbrli:periodType="instant"/>
+</xsd:schema>

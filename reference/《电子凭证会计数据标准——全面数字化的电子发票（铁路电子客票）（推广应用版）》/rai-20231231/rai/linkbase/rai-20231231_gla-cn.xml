@@ -1,0 +1,22 @@
+<!--
+      Taxonomy: 2023-12-31 (Final)
+      ********************** 
+        Copyright  2023 Ministry of Finance, China.
+        All rights reserved.  No part of this publication may be translated, reprinted or reproduced 
+        in any form either in whole or in part without prior permission in writing from the Ministry of Finance, China.
+      ********************** -->
+<link:linkbase xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd http://xbrl.org/2008/label http://www.xbrl.org/2008/generic-label.xsd http://xbrl.org/2008/generic http://www.xbrl.org/2008/generic-link.xsd http://www.w3.org/1999/xlink http://www.xbrl.org/2003/xlink-2003-12-31.xsd" xmlns:rai="http://xbrl.mof.gov.cn/taxonomy/2023-12-31/rai" xmlns:gen="http://xbrl.org/2008/generic" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:label="http://xbrl.org/2008/label" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <link:roleRef roleURI="http://www.xbrl.org/2008/role/label" xlink:type="simple" xlink:href="http://www.xbrl.org/2008/generic-label.xsd#standard-label"/>
+  <link:roleRef roleURI="http://www.xbrl.org/2008/role/link" xlink:type="simple" xlink:href="http://www.xbrl.org/2008/generic-link.xsd#standard-link-role"/>
+  <link:arcroleRef arcroleURI="http://xbrl.org/arcrole/2008/element-label" xlink:type="simple" xlink:href="http://www.xbrl.org/2008/generic-label.xsd#element-label"/>
+  <gen:link xlink:type="extended" xlink:role="http://www.xbrl.org/2008/role/link">
+    <link:loc xlink:type="locator" xlink:href="rai-20231231_rol.xsd#ElectronicInvoiceRailwayETicketIssuer" xlink:label="roleType1" xlink:title="roleType1"/>
+    <label:label xlink:type="resource" xlink:label="label1" xlink:role="http://www.xbrl.org/2008/role/label" xlink:title="label1" xml:lang="zh">电子发票（铁路电子客票）-开具方</label:label>
+    <gen:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/element-label" xlink:from="roleType1" xlink:to="label1" xlink:title="gen: roleType1 to label1" order="10.0"/>
+  </gen:link>
+  <gen:link xlink:type="extended" xlink:role="http://www.xbrl.org/2008/role/link">
+    <link:loc xlink:type="locator" xlink:href="rai-20231231_rol.xsd#ElectronicInvoiceRailwayETicketReceiver" xlink:label="roleType2" xlink:title="roleType2"/>
+    <label:label xlink:type="resource" xlink:label="label2" xlink:role="http://www.xbrl.org/2008/role/label" xlink:title="label2" xml:lang="zh">电子发票（铁路电子客票）-接收方</label:label>
+    <gen:arc xlink:type="arc" xlink:arcrole="http://xbrl.org/arcrole/2008/element-label" xlink:from="roleType2" xlink:to="label2" xlink:title="gen: roleType2 to label2" order="10.0"/>
+  </gen:link>
+</link:linkbase>

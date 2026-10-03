@@ -1,0 +1,26 @@
+<!--
+      Taxonomy: 2023-12-31 (Final)
+      ********************** 
+        Copyright  2023 Ministry of Finance, China.
+        All rights reserved.  No part of this publication may be translated, reprinted or reproduced 
+        in any form either in whole or in part without prior permission in writing from the Ministry of Finance, China.
+      ********************** -->
+<xsd:schema targetNamespace="http://xbrl.mof.gov.cn/taxonomy/2023-12-31/rai/rai_receiver_entry_point" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:rai_receiver_entry_point="http://xbrl.mof.gov.cn/taxonomy/2023-12-31/rai/rai_receiver_entry_point" xmlns:link="http://www.xbrl.org/2003/linkbase" xmlns:gen="http://xbrl.org/2008/generic" xmlns:rai-20231231_rol="http://xbrl.mof.gov.cn/taxonomy/2023-12-31/rai/rol" xmlns:ref="http://www.xbrl.org/2006/ref" xmlns:num="http://www.xbrl.org/dtr/type/numeric" xmlns:nonnum="http://www.xbrl.org/dtr/type/non-numeric" xmlns:xbrldt="http://xbrl.org/2005/xbrldt" xmlns:label="http://xbrl.org/2008/label" xmlns:xl="http://www.xbrl.org/2003/XLink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xbrli="http://www.xbrl.org/2003/instance" xmlns:utr="http://www.xbrl.org/2009/utr" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <xsd:annotation>
+    <xsd:appinfo>
+      <link:linkbaseRef xlink:type="simple" xlink:href="rai/linkbase/rai-20231231_gla-cn.xml" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+      <link:linkbaseRef xlink:type="simple" xlink:href="rai/linkbase/rai-20231231_gla-en.xml" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+      <link:linkbaseRef xlink:type="simple" xlink:href="rai/linkbase/rai_receiver-20231231_pre.xml" xlink:role="http://www.xbrl.org/2003/role/presentationLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+      <link:linkbaseRef xlink:type="simple" xlink:href="rai/linkbase/rai-20231231_lab-cn.xml" xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+      <link:linkbaseRef xlink:type="simple" xlink:href="rai/linkbase/rai-20231231_lab-en.xml" xlink:role="http://www.xbrl.org/2003/role/labelLinkbaseRef" xlink:arcrole="http://www.w3.org/1999/xlink/properties/linkbase"/>
+    </xsd:appinfo>
+  </xsd:annotation>
+  <xsd:import namespace="http://www.xbrl.org/2003/instance" schemaLocation="http://www.xbrl.org/2003/xbrl-instance-2003-12-31.xsd"/>
+  <xsd:import namespace="http://www.xbrl.org/dtr/type/non-numeric" schemaLocation="http://www.xbrl.org/dtr/type/nonNumeric-2009-12-16.xsd"/>
+  <xsd:import namespace="http://www.xbrl.org/dtr/type/numeric" schemaLocation="http://www.xbrl.org/dtr/type/numeric-2009-12-16.xsd"/>
+  <xsd:import namespace="http://xbrl.org/2005/xbrldt" schemaLocation="http://www.xbrl.org/2005/xbrldt-2005.xsd"/>
+  <xsd:import namespace="http://xbrl.org/2008/label" schemaLocation="http://www.xbrl.org/2008/generic-label.xsd"/>
+  <xsd:import namespace="http://xbrl.org/2008/generic" schemaLocation="http://www.xbrl.org/2008/generic-link.xsd"/>
+  <xsd:import namespace="http://xbrl.mof.gov.cn/taxonomy/2023-12-31/rai" schemaLocation="rai/rai_cor-20231231.xsd"/>
+  <xsd:import namespace="http://xbrl.mof.gov.cn/taxonomy/2023-12-31/rai/rol" schemaLocation="rai/linkbase/rai-20231231_rol.xsd"/>
+</xsd:schema>

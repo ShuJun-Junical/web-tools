@@ -1,0 +1,24 @@
+<!--
+      Taxonomy: 2023-12-31 (Final)
+      ********************** 
+        Copyright  2023 Ministry of Finance, China.
+        All rights reserved.  No part of this publication may be translated, reprinted or reproduced 
+		in any form either in whole or in part without prior permission in writing from the Ministry of Finance, China.
+      ********************** -->
+<xsd:schema targetNamespace="http://xbrl.mof.gov.cn/taxonomy/2023-12-31/rai/rol" attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:rai-20231231_rol="http://xbrl.mof.gov.cn/taxonomy/2023-12-31/rai/rol" xmlns:link="http://www.xbrl.org/2003/linkbase">
+  <xsd:annotation>
+   <xsd:appinfo>
+	<link:roleType roleURI="http://xbrl.mof.gov.cn/role/2023-12-31/100701" id="ElectronicInvoiceRailwayETicketIssuer">
+        <link:definition>100701 - Document - Electronic invoice (railway e-ticket) - issuer</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:labelLink</link:usedOn>
+      </link:roleType>
+	  <link:roleType roleURI="http://xbrl.mof.gov.cn/role/2023-12-31/100702" id="ElectronicInvoiceRailwayETicketReceiver">
+        <link:definition>100702 - Document -Electronic invoice (railway e-ticket) - receiver</link:definition>
+        <link:usedOn>link:presentationLink</link:usedOn>
+        <link:usedOn>link:labelLink</link:usedOn>
+      </link:roleType> 
+    </xsd:appinfo>
+  </xsd:annotation>
+  <xsd:import namespace="http://www.xbrl.org/2003/linkbase" schemaLocation="http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd"/>
+</xsd:schema>
