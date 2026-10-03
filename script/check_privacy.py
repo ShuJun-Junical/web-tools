@@ -50,14 +50,16 @@ SKIP_FILES = {".DS_Store", "Thumbs.db", "desktop.ini"}
 PUBLIC_DIRS = ("reference/",)
 
 # 已知无害的合成数据(代码注释/文档示例)
+# 注意:这两条如今只在 Git 历史对象里命中——工作区中的示例早已改写或连同
+# 旧文档一起删除。保留它们是为了历史提交里已有这些串,删掉条目会让自检误报。
 ALLOWLIST: list[tuple[str, str]] = [
     (
         r"123456200401011234",
-        "ticketImageGenerator.ts 中脱敏函数的格式示例,123456 为虚构区划码",
+        "Git 历史中已删除的脱敏函数格式示例,123456 为虚构区划码",
     ),
     (
         r"12345678901234567890",
-        "SVG_IMPLEMENTATION_SUMMARY.md 占位符对照表中的合成票号,连号易辨识",
+        "Git 历史中已删除的旧文档占位符对照表示例票号,连号易辨识",
     ),
 ]
 
