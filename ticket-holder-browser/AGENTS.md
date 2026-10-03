@@ -95,4 +95,3 @@ XML  <rai:TrainNumber>G6709</rai:TrainNumber>
 - [ ] **多票收藏没做。**`byDepartureAt()` 和 `getDepartureAt()` 已经能排序，但 `FileUploader` 一次只处理一个文件，没有列表、没有持久化、没有排序/分组 UI。
 - [ ] **没有自动化测试。**`src/` 下无 `*.test.ts`，质量门只有 `vue-tsc` + `vite build`。时区、占位符校验、字段精简这几块最适合补单测（纯函数，无 DOM 依赖）。
 - [ ] `Ticket` 领域层的 `refundedAmount` 已定义但没接进 UI；`NumberOfOriginalInvoice`、`DiscountMark`、`TypeOfRailwayTicket` 等改签/优惠字段也没在界面上单独呈现。
-- [ ] `pnpm-workspace.yaml` 未纳入版本库（未跟踪），确认是否该提交。
