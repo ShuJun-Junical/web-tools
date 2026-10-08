@@ -40,9 +40,24 @@ deps: 添加 prettier 作为开发依赖
 ## 项目定位
 
 - 本项目是纯前端静态工具站，所有数据默认只在浏览器本地处理，不上传用户输入或文件。
-- 技术栈为 Vue 3、Vite、TypeScript、Vue Router、Tailwind CSS、shadcn-vue 和 VueUse。
+- 技术栈为 Vue 3、Vite、TypeScript、Vue Router、Tailwind CSS、shadcn-vue 和 VueUse；文档转换另用 remark 生态（`remark-parse`、`remark-gfm`、`remark-docx`、`docx`）和 `fflate` 处理 zip。
 - 构建产物为 `dist/`，不增加后端、Nuxt、SSG、Pinia 等能力，除非当前需求明确需要。
 - 路由使用 HTML5 History 模式，部署端必须将未知路径回退到 `/index.html`。
+
+## 文档转换引擎
+
+- Markdown 转 Word 固定用 `remark-docx`，在 Web Worker 内运行，不进首包。
+- 不要改用 pandoc.wasm：它需要额外下载约 15MB，且 WASI 虚拟文件系统按扁平 Map 存放文件，`![](images/a.png)` 这类子目录引用会只报 WARNING 并把图片替换成说明文字，官方 app 只能靠「压平文件名 + resource-path」绕过，会丢失目录语义。
+- 需要 PDF 输出时走 `remark-pdf`（pdfkit），不引入 Typst 或 headless 浏览器。
+- `remark-docx` 对缺失、超限格式和代码块都是静默降级。自建管线必须自己拦截并把失败原因回传页面，禁止让转换"看起来成功但内容缺失"。
+- `docx` 必须与 `remark-docx` 锁定同一版本，避免重复打包两份。
+- Web Worker 里没有 `document`。客户端构建会按 `browser` 条件解析到依赖的 DOM 版本，模块顶层一求值整个 worker 就起不来，页面只显示"转换引擎启动失败"。`decode-named-character-reference` 已知会切到用 `document` 的 `index.dom.js`，已在 `vite.config.ts` 用 `resolve.alias` 钉回查表版 `index.js`。新增会进这条链的依赖前，先确认它在 worker 里求值不碰 DOM；Vite 8/Rolldown 下自定义插件的 `resolveId` 对 `node_modules` 内部的裸导入不生效，只能靠 `resolve.alias`。
+- `File` 的 `webkitRelativePath` 不会被结构化克隆带走，`postMessage` 把 File 发进 worker 会退化成只有文件名。文件夹来源必须由主线程把相对路径一起发过去，否则主文档丢目录、图片只能靠文件名唯一性兜底。
+- Worker 里无法把 SVG 栅格化成 PNG，`remark-docx` 会静默丢弃。SVG 与 WebP 一并在 `load` 里拦下并回报原因。
+- 拖拽区要同时吃下 zip 和文件夹：`dataTransfer.files` 遇到目录只会给一个读不出字节的空壳 File，只有 `webkitGetAsEntry` 能拿到目录树，必须自己递归（`readEntries` 一次最多一批，读到空批次才算完）。相对路径按 `webkitdirectory` 的口径拼，两种来源才能共用一套解析。
+- 发给 worker 的载荷不能是 Vue 的 reactive Proxy，`postMessage` 会报 `[object Array] could not be cloned`。这类"整份替换、只用于发消息"的状态用 `shallowRef`，不要用 `ref`。
+- 拖进来的文件先校验 zip 魔数再报错。系统读文件失败抛的是 `NSFileNoSuchFileError` 这类原始文案，对用户没有指导意义，一律换成能照做的提示。
+- `run()` 里 `postMessage` 同步抛错时走不到 `onmessage`/`onerror`，`busy` 必须在 `convert()` 的 catch 里兜住，否则界面永远停在"转换中"。
 
 ## PWA 更新与缓存
 
@@ -118,6 +133,32 @@ src/
 - 更新依赖时使用最新稳定兼容版本，不使用 beta、RC 或 canary。
 - TypeScript 当前固定在最新 6.x；升级到 7.x 前必须先确认 `vue-tsc` 已兼容。
 - 仅修改依赖时运行 `pnpm outdated` 并检查 peer dependency 警告。
+- `docx` 是 `remark-docx` 的直接依赖，必须与 `remark-docx` 锁定同一版本，避免同一份库打包两遍。`unified` 由本项目直接声明：remark-docx 只在类型里引用它，不会带进来，保持单一版本即可。
+
+### Agent 沙箱下的安装
+
+带 Agent 沙箱的 Harness 通常只授予工作区写权限，而 pnpm 出于跨项目复用把 store 放在工作区之外，两者必然冲突。已知表现和解法：
+
+- **工作区外全部只读**：`/tmp`、`/var/tmp`、`~`、`~/Library/pnpm/store` 都写不了，npm 因缓存不可写完全不可用。优先申请提权放开全局 store；提不了权时，所有 pnpm 命令必须显式指定项目内 store（`.pnpm-store` 已在 `.gitignore`）：
+
+  ```bash
+  pnpm add <pkg> --store-dir ./.pnpm-store
+  ```
+
+  省略该参数时 pnpm 会自行改指别处，报 `ERR_PNPM_UNEXPECTED_STORE`。
+- **store 记录不一致没有原地修复**：既有 `node_modules` 链接自 A store、而 pnpm 想用 B store 时，`pnpm install` 只会回答 `Already up to date` 并且拒绝重链，`--force` 也无效。唯一解法是把 `node_modules` 移到回收站后重装，不要反复重试参数。
+- **tarball 带 IDE 目录的包会以 `ERR_PNPM_EPERM` 中断**：沙箱禁止在 `.idea` 内创建子项，而 `iconv-lite@0.6.3` 的官方包内含 `.idea/`，部分包还带 `.gitmodules`。报错表象是 pnpm 损坏，真因是包作者把 IDE 配置发上了 npm。手工补装该包、跳过点目录，再让 pnpm 收尾：
+
+  ```bash
+  # 作用包名为 pkg@ver，scoped 包把 tarball 路径换成 /@scope/name/-/name-ver.tgz
+  mkdir -p "node_modules/.pnpm/<pkg>@<ver>/node_modules/<pkg>"
+  curl -sL "https://registry.npmjs.org/<pkg>/-/<pkg>-<ver>.tgz" \
+    | tar -xz -C "node_modules/.pnpm/<pkg>@<ver>/node_modules/<pkg>" \
+      --strip-components=1 --exclude='package/.idea' --exclude='package/.gitmodules'
+  ```
+
+- pnpm 在写顶层软链之前中止，所以安装失败不会留下半坏的 `node_modules`；遇到 `ERR_PNPM_EPERM` 时可直接补包继续，不必整体重来。
+- 不要为了验证而在项目目录里建临时目录、探针目录或临时压缩包；验证产物只落在系统临时目录或回收站。
 
 ## 验证要求
 
