@@ -11,6 +11,17 @@ const toolGroupsBase = [
     ],
   },
   {
+    title: '文档工具',
+    tools: [
+      {
+        path: '/document/markdown-docx',
+        title: 'Markdown 转 Word',
+        description: '把带图片的 Markdown 压缩包或文件夹转换成 Word 文档。',
+        component: () => import('@/pages/document/MarkdownToDocxPage.vue'),
+      },
+    ],
+  },
+  {
     title: '实用工具',
     tools: [
       {
