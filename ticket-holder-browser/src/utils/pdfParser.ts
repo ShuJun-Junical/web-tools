@@ -54,13 +54,16 @@ function decodePDFString(value: unknown): string | null {
 }
 
 /**
- * 从 PDF 文件中提取第一个以 rai_issuer_ 开头的 XML 附件
+ * 从 PDF 字节里提取第一个以 rai_issuer_ 开头的 XML 附件
+ *
+ * 暴露为单独函数是给单测用的：测试里没有 `File` 对象，直接拿 `Uint8Array`
+ * 喂过来能少写一层 polyfill。生产环境由 `extractXmlFromPDF` 间接调用。
  */
-export async function extractXmlFromPDF(file: File): Promise<PDFParseResult> {
-  const arrayBuffer = await file.arrayBuffer()
-
+export async function extractXmlFromPDFBytes(
+  bytes: Uint8Array,
+): Promise<PDFParseResult> {
   try {
-    const pdfDoc = await PDFDocument.load(arrayBuffer)
+    const pdfDoc = await PDFDocument.load(bytes)
 
     // 获取嵌入文件 - 使用正确的 pdf-lib API
     const catalogDict = pdfDoc.catalog as PDFDict
@@ -140,4 +143,13 @@ export async function extractXmlFromPDF(file: File): Promise<PDFParseResult> {
     }
     throw new Error('PDF 解析失败: 未知错误')
   }
+}
+
+/**
+ * 从 `File` 提取附件 —— 生产入口。`file.arrayBuffer()` 在浏览器与
+ * Node 24+ 都能跑，把 `File` 转成 `Uint8Array` 后委托给 `extractXmlFromPDFBytes`。
+ */
+export async function extractXmlFromPDF(file: File): Promise<PDFParseResult> {
+  const arrayBuffer = await file.arrayBuffer()
+  return extractXmlFromPDFBytes(new Uint8Array(arrayBuffer))
 }
