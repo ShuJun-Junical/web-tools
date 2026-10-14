@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test": "pnpm exec vitest run",
     "test:watch": "pnpm exec vitest",
-    "fixture": "node scripts/build-pdf-fixture.mjs"
+    "fixture": "node scripts/build-pdf-fixture.mjs",
+    "fixture:ofd": "node scripts/build-ofd-fixture.mjs"
   },
   "dependencies": {
     "fast-xml-parser": "^5.3.2",
