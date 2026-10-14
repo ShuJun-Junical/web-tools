@@ -1,10 +1,15 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { generateTicketImage, downloadImage } from '../utils/ticketImageGenerator'
-import type { ParsedData } from '../utils/xmlParser'
+import { ref, watch, computed } from 'vue'
+import {
+  generateTicketImage,
+  downloadImage,
+  TICKET_PLACEHOLDERS,
+  type PlaceholderKey,
+} from '../utils/ticketImageGenerator'
+import { text, type Ticket } from '../types/ticket'
 
 interface Props {
-  ticketData: ParsedData
+  ticket: Ticket
 }
 
 const props = defineProps<Props>()
@@ -16,15 +21,31 @@ const useTemplate = ref(true)
 const templateUrl = ref('/ticket-template.svg')
 const hideIdNumber = ref(false)
 
-// 可用模板列表
+// 可用模板列表。red.svg 尚未从 design/red.ai 导出，选中它会回退到 Canvas 绘制。
 const templates = [
   { label: '经典样式', value: '/ticket-template.svg' },
   { label: '现代样式', value: '/templates/modern.svg' },
-  { label: '红票', value: '/templates/red.svg' }
+  { label: '红票（待导出）', value: '/templates/red.svg' }
 ]
 
-// 监听 ticketData 变化，自动生成图片
-watch(() => props.ticketData, async (newData) => {
+/**
+ * 可用占位符清单
+ *
+ * 直接渲染自 `TICKET_PLACEHOLDERS`——和模板渲染器读的是同一个常量，
+ * 所以做模板时看到的清单永远不过期。
+ */
+const placeholderList = computed(() =>
+  (Object.keys(TICKET_PLACEHOLDERS) as PlaceholderKey[]).map((key) => ({
+    key,
+    label: TICKET_PLACEHOLDERS[key].label,
+  }))
+)
+
+// 模板里不能直接写 `{{` 字面量——Vue 会当成插值开头，所以从脚本注入
+const placeholderSyntax = '{{key}}'
+
+// 监听 ticket 变化，自动生成图片
+watch(() => props.ticket, async (newData) => {
   if (newData) {
     await generateImage()
   }
@@ -32,7 +53,7 @@ watch(() => props.ticketData, async (newData) => {
 
 // 监听模板选择和隐私设置变化，重新生成
 watch([useTemplate, templateUrl, hideIdNumber], async () => {
-  if (props.ticketData) {
+  if (props.ticket) {
     await generateImage()
   }
 })
@@ -46,7 +67,7 @@ async function generateImage() {
       ...(useTemplate.value ? { templateUrl: templateUrl.value } : {}),
       hideIdNumber: hideIdNumber.value
     }
-    const dataUrl = await generateTicketImage(props.ticketData, options)
+    const dataUrl = await generateTicketImage(props.ticket, options)
     imageUrl.value = dataUrl
   } catch (err) {
     error.value = err instanceof Error ? err.message : '生成图片失败'
@@ -58,7 +79,7 @@ async function generateImage() {
 function handleDownload() {
   if (!imageUrl.value) return
   
-  const ticketNumber = props.ticketData.ElectronicInvoiceRailwayETicketNumber || 'ticket'
+  const ticketNumber = text(props.ticket.invoiceNumber) || 'ticket'
   downloadImage(imageUrl.value, `${ticketNumber}.png`)
 }
 </script>
@@ -115,6 +136,21 @@ function handleDownload() {
         <span v-else class="template-badge canvas-badge">Canvas 绘制</span>
       </p>
     </div>
+
+    <details v-if="useTemplate" class="placeholder-help">
+      <summary>可用占位符（{{ placeholderList.length }} 个）</summary>
+      <p class="placeholder-note">
+        在 SVG 模板里写 <code>{{ placeholderSyntax }}</code> 引用。写错会在上方直接报错并指出正确写法。
+      </p>
+      <table class="placeholder-table">
+        <tbody>
+          <tr v-for="p in placeholderList" :key="p.key">
+            <td class="ph-key">{{ p.key }}</td>
+            <td class="ph-label">{{ p.label }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </details>
   </div>
 </template>
 
@@ -241,6 +277,53 @@ function handleDownload() {
 .canvas-badge {
   background: #f3e5f5;
   color: #7b1fa2;
+}
+
+.placeholder-help {
+  margin-top: 1.25rem;
+  font-size: 0.85rem;
+  color: #5a6c7d;
+}
+
+.placeholder-help summary {
+  cursor: pointer;
+  color: #7f8c8d;
+  user-select: none;
+}
+
+.placeholder-note {
+  margin: 0.75rem 0 0.5rem;
+  color: #95a5a6;
+}
+
+.placeholder-note code {
+  background: #f4f6f8;
+  padding: 0.05rem 0.3rem;
+  border-radius: 3px;
+  font-family: 'Monaco', 'Courier New', monospace;
+}
+
+.placeholder-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.placeholder-table td {
+  padding: 0.25rem 0.5rem;
+  border-bottom: 1px solid #f2f4f6;
+  vertical-align: top;
+}
+
+.ph-key {
+  width: 15rem;
+  font-family: 'Monaco', 'Courier New', monospace;
+  color: #2c3e50;
+  word-break: break-all;
+}
+
+.ph-label {
+  color: #7f8c8d;
 }
 
 @media (max-width: 640px) {
