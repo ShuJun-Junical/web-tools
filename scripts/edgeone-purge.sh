@@ -71,10 +71,11 @@ TS=$(date +%s)
 # Linux GNU date: -d "@TS" +format;macOS BSD fallback: -r TS +format
 DATE=$(date -u -d "@$TS" +%Y-%m-%d 2>/dev/null || date -u -r "$TS" +%Y-%m-%d)
 
-sha256_hex() { openssl dgst -sha256 -hex | awk '{print $NF}'; }
+# 用 -binary + xxd -p 拿字节级 hex,避开不同 openssl 版本的输出格式(token 数、大小写)差异
+sha256_hex() { openssl dgst -sha256 -binary 2>/dev/null | xxd -p -c 256; }
 hmac_sha256_hex() {
   local key="$1"
-  openssl dgst -sha256 -mac HMAC -macopt "key:${key}" | awk '{print $NF}'
+  openssl dgst -sha256 -mac HMAC -macopt "key:${key}" -binary 2>/dev/null | xxd -p -c 256
 }
 
 HASHED_PAYLOAD=$(printf '%s' "$PAYLOAD" | sha256_hex)
