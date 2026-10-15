@@ -70,6 +70,9 @@ jobs:
           ZONE_ID=$(printf '%s\n' "$list_out" | awk -F'\t' -v z="$EDGEONE_ZONE_NAME" '$2 == z {print $1; exit}')
           if [[ -z "$ZONE_ID" ]]; then
             echo "::error::no zone matched ZoneName=$EDGEONE_ZONE_NAME" >&2
+            echo "::group::all zones (verbose JSON,EdgeOne ZoneName 字段实际值)"
+            bash scripts/edgeone-purge.sh --list-zones --json || true
+            echo "::endgroup::"
             exit 1
           fi
           echo "==> ZoneId resolved: $ZONE_ID"

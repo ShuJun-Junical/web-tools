@@ -30,10 +30,12 @@ set -euo pipefail
 
 DRY_RUN=0
 LIST_ZONES=0
+LIST_JSON=0
 for arg in "$@"; do
   case "$arg" in
     --dry-run) DRY_RUN=1 ;;
     --list-zones) LIST_ZONES=1 ;;
+    --json) LIST_JSON=1 ;;
     *) echo "unknown flag: $arg" >&2; exit 2 ;;
   esac
 done
@@ -124,8 +126,11 @@ resp=$(curl -fsS -X POST "https://${HOST}/" \
   -d "$PAYLOAD")
 
 if [[ $LIST_ZONES -eq 1 ]]; then
-  # 输出三列: zone_id \t zone_name \t status
-  echo "$resp" | jq -r '.Response.Zones[]? | [.ZoneId, .ZoneName, (.Status // "?")] | @tsv'
+  if [[ $LIST_JSON -eq 1 ]]; then
+    echo "$resp" | jq '.Response.Zones[]?'
+  else
+    echo "$resp" | jq -r '.Response.Zones[]? | [.ZoneId, .ZoneName, (.Status // "?")] | @tsv'
+  fi
   exit 0
 fi
 
