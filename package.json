@@ -11,7 +11,9 @@
     "preview": "vite preview",
     "typecheck": "vue-tsc --noEmit",
     "test": "vitest run",
-    "format": "prettier --write src/"
+    "format": "prettier --write src/",
+    "fixture:pdf": "node scripts/build-pdf-fixture.mjs",
+    "fixture:ofd": "node scripts/build-ofd-fixture.mjs"
   },
   "dependencies": {
     "@6over3/zeroperl-ts": "1.0.10",
@@ -22,9 +24,11 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "docx": "9.7.1",
+    "fast-xml-parser": "^5.11.2",
     "fflate": "^0.8.3",
     "katex": "^0.17.0",
     "lunar-typescript": "1.8.6",
+    "pdf-lib": "^1.17.1",
     "punycode": "2.3.1",
     "reka-ui": "^2.10.1",
     "remark-docx": "^0.3.29",
