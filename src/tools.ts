@@ -19,6 +19,12 @@ const toolGroupsBase = [
         description: '把带图片的 Markdown 压缩包或文件夹转换成 Word 文档。',
         component: () => import('@/pages/document/MarkdownToDocxPage.vue'),
       },
+      {
+        path: '/document/railway-ticket',
+        title: '铁路电子客票解析',
+        description: '解析 OFD/PDF 格式的铁路电子客票，提取附件里的 XBRL 数据并预览票面图片。',
+        component: () => import('@/pages/document/TicketParserPage.vue'),
+      },
     ],
   },
   {
