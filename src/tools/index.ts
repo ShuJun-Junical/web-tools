@@ -34,7 +34,7 @@ const toolGroupsBase = [
         path: '/measure/ruler',
         title: '屏幕尺子',
         description: '按设备预设或自定义 PPI 显示可校准的毫米刻度尺。',
-        component: () => import('@/pages/measure/RulerPage.vue'),
+        component: () => import('@/tools/measure/ruler/Ruler.vue'),
       },
     ],
   },
@@ -45,7 +45,7 @@ const toolGroupsBase = [
         path: '/iching/bazi',
         title: '生辰八字排盘',
         description: '按节气排出四柱、十神、藏干、固定关系和大运流年。',
-        component: () => import('@/pages/iching/BaziPage.vue'),
+        component: () => import('@/tools/iching/bazi/Bazi.vue'),
       },
       {
         path: '/iching/coin',

@@ -3,7 +3,7 @@ import { computed, reactive, watch } from 'vue';
 import { Input } from '@/components/ui/input';
 import { RadioGroup } from '@/components/ui/radio-group';
 import { Select } from '@/components/ui/select';
-import { calculatePpi, ppiPresets, type PresetId } from '@/lib/ruler';
+import { calculatePpi, ppiPresets, type PresetId } from './ruler';
 
 export type PpiSourceKind = 'reference' | 'preset' | 'custom' | 'calibration';
 

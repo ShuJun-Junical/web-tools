@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { calculateBazi, type BaziInput } from '@/lib/bazi';
+import { calculateBazi, type BaziInput } from './bazi';
 
 const baseInput: BaziInput = {
   calendar: 'solar',

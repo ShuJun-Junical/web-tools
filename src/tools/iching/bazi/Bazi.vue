@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup } from '@/components/ui/radio-group';
 import { Select } from '@/components/ui/select';
-import { calculateBazi, type BaziInput, type BaziResult, type FiveElement } from '@/lib/bazi';
+import { calculateBazi, type BaziInput, type BaziResult, type FiveElement } from './bazi';
 
 const DEFAULT_FORM = {
   calendar: 'solar' as BaziInput['calendar'],

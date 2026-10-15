@@ -4,7 +4,7 @@ import { useResizeObserver } from '@vueuse/core';
 import { Expand } from '@lucide/vue';
 import PpiSourceEditor, {
   type PpiSourceFields,
-} from '@/components/ruler/PpiSourceEditor.vue';
+} from './PpiSourceEditor.vue';
 import ToolPage from '@/components/ToolPage.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,7 +12,7 @@ import {
   cssPixelsPerMillimeter,
   snapToLayoutPixels,
   wholeMillimetersThatFit,
-} from '@/lib/ruler';
+} from './ruler';
 
 type Edge = 'top' | 'right' | 'bottom' | 'left';
 

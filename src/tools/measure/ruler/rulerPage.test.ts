@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { mount } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
-import RulerPage from '@/pages/measure/RulerPage.vue';
+import RulerPage from '@/tools/measure/ruler/Ruler.vue';
 
 const stubs = {
   ToolPage: { template: '<main><slot /></main>' },

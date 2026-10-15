@@ -4,7 +4,7 @@ import {
   cssPixelsPerMillimeter,
   snapToLayoutPixels,
   wholeMillimetersThatFit,
-} from '@/lib/ruler';
+} from './ruler';
 
 describe('ruler calculations', () => {
   it('calculates PPI from resolution and diagonal size', () => {
