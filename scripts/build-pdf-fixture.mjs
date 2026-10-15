@@ -14,8 +14,8 @@
  *   `rai:UnknownField` 测 `xmlParser` 的 `extra` 兜底
  *
  * 跑一次：   `pnpm fixture:pdf`
- * 输出：     `src/tests/__fixtures__/synthetic-ticket.pdf`
- *           `src/tests/__fixtures__/synthetic-ticket.xml`
+ * 输出：     `src/tools/document/railway-ticket/__fixtures__/synthetic-ticket.pdf`
+ *           `src/tools/document/railway-ticket/__fixtures__/synthetic-ticket.xml`
  *
  * 依赖：     `qpdf` ≥ 9.1（需在 PATH 里）。只有重新生成 fixture 才需要它——
  *           产物已提交进仓库，`pnpm test` 与 `pnpm build` 都不依赖 qpdf。

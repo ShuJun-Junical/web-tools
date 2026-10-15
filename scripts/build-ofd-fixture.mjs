@@ -11,7 +11,7 @@
  * `\d{20,25}` 长数字阈值。
  *
  * 跑一次：   `pnpm fixture:ofd`
- * 输出：     `src/tests/__fixtures__/synthetic-ticket.ofd`
+ * 输出：     `src/tools/document/railway-ticket/__fixtures__/synthetic-ticket.ofd`
  *
  * 依赖：     `fflate`（项目内已有）。无外部 CLI 依赖。
  */

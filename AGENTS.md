@@ -89,7 +89,6 @@ src/
 - 路径 `path: '/<type>/<slug>'` ↔ 目录 `src/tools/<type>/<slug>/` ↔ 主入口 `<PascalCase>.vue`（slug 去 kebab 转 PascalCase）。
 - 例如 `/image/exif` ↔ `src/tools/image/exif/ExifHandler.vue`；`/document/markdown-docx` ↔ `src/tools/document/markdown-docx/MarkdownToDocx.vue`。
 - 工具私有 `.vue`、`.ts`、`.test.ts` 平铺在 `src/tools/<type>/<slug>/` 同目录内；vitest 默认 include 是 `**/*.{test,spec}.?(c|m)[jt]s?(x)`，递归覆盖整个工作区，不需要额外 include 配置。
-- 迁移期间老路径 `src/pages/<type>/<Tool>Page.vue` 仍可作为 `tools/index.ts` 中 `component` 字段的临时目标；每个工具迁完一次，同步删除对应老文件。
 
 ## 新增和修改工具
 
