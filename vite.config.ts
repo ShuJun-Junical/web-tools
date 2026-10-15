@@ -25,6 +25,18 @@ export default defineConfig({
   test: {
     setupFiles: ['src/tests/setup.ts'],
   },
+  build: {
+    rolldownOptions: {
+      output: {
+        // 给 pdf-lib 一个稳定 chunk 名。动态 import 本来就会把它拆成独立 chunk，
+        // 但默认名是内容哈希（es-xxxx.js），workbox 的 globIgnores 没法按名字排掉；
+        // 固定成 pdf-lib-*.js 后才能不进预缓存清单（见下方 globIgnores）。
+        codeSplitting: {
+          groups: [{ name: 'pdf-lib', test: /node_modules[\\/]pdf-lib/ }],
+        },
+      },
+    },
+  },
   plugins: [
     vue(),
     tailwindcss(),
@@ -33,6 +45,10 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,png,svg,woff2}'],
         navigateFallback: null,
+        // pdf-lib（约 428kB）只在用户真的上传 PDF 电子客票时才需要。不排掉的话它
+        // 仍会进预缓存清单，所有访客一装 PWA 就先下载它，动态 import 等于白做。
+        // 与下面 zeroperl wasm 同一取舍：重资源按需缓存，不预取。
+        globIgnores: ['**/pdf-lib-*.js'],
         runtimeCaching: [
           {
             // zeroperl wasm（约 24MB）供 EXIF 工具懒加载：不进预缓存清单，

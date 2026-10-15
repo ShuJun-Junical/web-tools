@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<xbrl xmlns="http://www.xbrl.org/2003/instance"
+      xmlns:rai="http://xbrl.mof.gov.cn/taxonomy/2021-11-30/rai"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:link="http://www.xbrl.org/2003/linkbase"
+      xsi:schemaLocation="http://www.xbrl.org/2003/linkbase http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd">
+  <link:schemaRef xlink:href="http://www.xbrl.org/2003/xbrl-linkbase-2003-12-31.xsd" xlink:type="simple"/>
+  <context id="As_Of_2099_12_31">
+    <entity><identifier scheme="http://example">synth</identifier></entity>
+    <period><instant>2099-12-31</instant></period>
+  </context>
+  <unit id="CNY"><measure>iso4217:CNY</measure></unit>
+  <rai:ElectronicInvoiceRailwayETicketNumber>12345</rai:ElectronicInvoiceRailwayETicketNumber>
+  <rai:DateOfIssue>2099-12-31</rai:DateOfIssue>
+  <rai:IssueParty>Test Issuer</rai:IssueParty>
+  <rai:IssuePartyCode xsi:nil="true"/>
+  <rai:TypeOfBusiness>S</rai:TypeOfBusiness>
+  <rai:DepartureStation>StationA</rai:DepartureStation>
+  <rai:PhonicsOfDepartureStation>StationApinyin</rai:PhonicsOfDepartureStation>
+  <rai:DestinationStation>StationB</rai:DestinationStation>
+  <rai:PhonicsOfDestinationStation>StationBpinyin</rai:PhonicsOfDestinationStation>
+  <rai:TrainNumber>G0001</rai:TrainNumber>
+  <rai:TravelDate>2099-09-09</rai:TravelDate>
+  <rai:DepartureTime>08:08</rai:DepartureTime>
+  <rai:SeatLevel>SecondClass</rai:SeatLevel>
+  <rai:Carriage>08</rai:Carriage>
+  <rai:Seat>10A</rai:Seat>
+  <rai:Fare contextRef="As_Of_2099_12_31" unitRef="CNY" decimals="2">123.45</rai:Fare>
+  <rai:ETicketNumber xsi:nil="true"/>
+  <rai:IdNumber xsi:nil="true"/>
+  <rai:Name xsi:nil="true"/>
+  <rai:TotalAmountExcludingTax contextRef="As_Of_2099_12_31" unitRef="CNY" decimals="2">115.00</rai:TotalAmountExcludingTax>
+  <rai:TaxRate>0.09</rai:TaxRate>
+  <rai:TaxAmount contextRef="As_Of_2099_12_31" unitRef="CNY" decimals="2">10.00</rai:TaxAmount>
+  <rai:NameOfPurchaser xsi:nil="true"/>
+  <rai:UnifiedSocialCreditCodeOfPurchaser xsi:nil="true"/>
+  <rai:NumberOfOriginalInvoice xsi:nil="true"/>
+  <rai:Remarks>Synth remark</rai:Remarks>
+  <rai:UnknownField>extra-field-test</rai:UnknownField>
+</xbrl>
