@@ -56,10 +56,22 @@ jobs:
           ./coscli config add --bucket site-web-tools-1301539318 --region ap-beijing --endpoint cos.accelerate.myqcloud.com --alias site
           ./coscli sync dist/ cos://site/ --recursive --delete --force
 
-      - name: Purge EdgeOne HTML cache
+      - name: Auto-purge EdgeOne HTML cache
         env:
           TENCENT_CLOUD_SECRET_ID: ${{ secrets.TENCENT_CLOUD_SECRET_ID }}
           TENCENT_CLOUD_SECRET_KEY: ${{ secrets.TENCENT_CLOUD_SECRET_KEY }}
-          ZONE_ID: ${{ secrets.EO_ZONE_ID }}
           TARGETS: "https://tools.imjz.net/ https://tools.imjz.net/index.html"
-        run: bash scripts/edgeone-purge.sh
+          EDGEONE_ZONE_NAME: "tools.imjz.net"
+        run: |
+          set -euo pipefail
+          echo "==> resolving ZoneId via DescribeZones"
+          list_out=$(bash scripts/edgeone-purge.sh --list-zones)
+          echo "$list_out"
+          ZONE_ID=$(printf '%s\n' "$list_out" | awk -F'\t' -v z="$EDGEONE_ZONE_NAME" '$2 == z {print $1; exit}')
+          if [[ -z "$ZONE_ID" ]]; then
+            echo "::error::no zone matched ZoneName=$EDGEONE_ZONE_NAME" >&2
+            exit 1
+          fi
+          echo "==> ZoneId resolved: $ZONE_ID"
+          echo "==> purging"
+          ZONE_ID="$ZONE_ID" bash scripts/edgeone-purge.sh
