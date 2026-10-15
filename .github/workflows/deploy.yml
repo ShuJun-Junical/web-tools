@@ -55,3 +55,11 @@ jobs:
           ./coscli config set --secret_id "$TENCENT_CLOUD_SECRET_ID" --secret_key "$TENCENT_CLOUD_SECRET_KEY"
           ./coscli config add --bucket site-web-tools-1301539318 --region ap-beijing --endpoint cos.accelerate.myqcloud.com --alias site
           ./coscli sync dist/ cos://site/ --recursive --delete --force
+
+      - name: Purge EdgeOne HTML cache
+        env:
+          TENCENT_CLOUD_SECRET_ID: ${{ secrets.TENCENT_CLOUD_SECRET_ID }}
+          TENCENT_CLOUD_SECRET_KEY: ${{ secrets.TENCENT_CLOUD_SECRET_KEY }}
+          ZONE_ID: ${{ secrets.EO_ZONE_ID }}
+          TARGETS: "https://tools.imjz.net/ https://tools.imjz.net/index.html"
+        run: bash scripts/edgeone-purge.sh
