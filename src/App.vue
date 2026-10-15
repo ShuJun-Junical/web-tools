@@ -7,6 +7,7 @@ import { useRegisterSW } from 'virtual:pwa-register/vue';
 import { Button } from '@/components/ui/button';
 import { ToastHost } from '@/components/ui/toast';
 import { toolGroups } from '@/tools';
+import { devToolGroups } from '@/router';
 
 const updateCheckInterval = 60 * 60 * 1000;
 const route = useRoute();
@@ -76,7 +77,7 @@ watch(
         aria-label="工具导航"
       >
         <nav class="flex-1 space-y-6 overflow-y-auto p-4">
-          <section v-for="group in toolGroups" :key="group.title">
+          <section v-for="group in [...toolGroups, ...devToolGroups]" :key="group.title">
             <h2 class="mb-2 px-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               {{ group.title }}
             </h2>

@@ -104,7 +104,7 @@ src/
 - 工具私有 `.ts` 可以用 `ref`、`computed` 和 Vue 生命周期，不强制升级为 `composables/`。
 - 工具私有测试用 `<Name>.test.ts` 命名，平铺在该工具目录下，紧跟被测代码。
 - 保留已发布 URL；确需改路径时，同时处理旧链接和部署影响。
-- 仅供开发和调试的页面放在 `src/pages/dev/<slug>/`（属于页面，不属于工具），注册由 `src/tools/index.ts` 通过 `import.meta.env.DEV` 守卫按需挂载：生产构建既不进导航，也不会打包该页面。
+- 仅供开发和调试的页面放在 `src/pages/dev/<slug>/`（属于页面，不属于工具）；注册（路由 + 侧栏/首页分组）以 `src/router/index.ts` 导出的 `devToolGroups` 为唯一来源，被路由、`App.vue`、`HomePage.vue` 三处共同 `import.meta.env.DEV` 守卫按需挂载。生产构建既不进导航，也不会打进产物。
 
 ## UI 与交互
 

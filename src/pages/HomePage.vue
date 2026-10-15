@@ -2,6 +2,7 @@
 import { ArrowRight } from '@lucide/vue';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toolGroups } from '@/tools';
+import { devToolGroups } from '@/router';
 </script>
 
 <template>
@@ -14,7 +15,7 @@ import { toolGroups } from '@/tools';
       </p>
     </header>
 
-    <section v-for="group in toolGroups" :key="group.title" class="space-y-4">
+    <section v-for="group in [...toolGroups, ...devToolGroups]" :key="group.title" class="space-y-4">
       <h2 class="text-xl font-semibold">{{ group.title }}</h2>
       <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         <RouterLink
