@@ -4,7 +4,7 @@ import ToolPage from '@/components/ToolPage.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
-import { analyzeText, supportsGraphemeSegmentation } from '@/lib/text-statistics';
+import { analyzeText, supportsGraphemeSegmentation } from './text-statistics';
 
 const text = ref('');
 const statistics = computed(() => (text.value ? analyzeText(text.value) : null));

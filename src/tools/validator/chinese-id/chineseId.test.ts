@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { findInvalidChineseIds, isValidChineseId } from '@/lib/chineseId';
+import { findInvalidChineseIds, isValidChineseId } from './chineseId';
 
 describe('身份证 MOD 11-2 校验', () => {
   it('校验 18 位身份证号码', () => {

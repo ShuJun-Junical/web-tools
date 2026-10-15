@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { analyzeText } from '@/lib/text-statistics';
+import { analyzeText } from './text-statistics';
 
 describe('文本统计', () => {
   it('处理空文本', () => {
