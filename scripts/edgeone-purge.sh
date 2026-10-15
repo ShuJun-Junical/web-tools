@@ -65,7 +65,9 @@ else
 fi
 
 TS=$(date +%s)
-DATE=$(date -u -r "$TS" +%Y-%m-%d)
+# Linux GNU date: -d "@TS";macOS BSD fallback: -r TS
+# Linux GNU date: -d "@TS" +format;macOS BSD fallback: -r TS +format
+DATE=$(date -u -d "@$TS" +%Y-%m-%d 2>/dev/null || date -u -r "$TS" +%Y-%m-%d)
 
 sha256_hex() { openssl dgst -sha256 -hex | awk '{print $NF}'; }
 hmac_sha256_hex() {
