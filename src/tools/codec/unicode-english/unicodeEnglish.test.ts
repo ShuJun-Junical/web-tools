@@ -3,7 +3,7 @@ import {
   convertUnicodeStyle,
   listUnicodeStyles,
   normalizeUnicodeStyle,
-} from '@/lib/unicode-english-converter';
+} from './unicode-english-converter';
 
 describe('Unicode 英文字体转换', () => {
   it('转换空输入、字母和数字', () => {

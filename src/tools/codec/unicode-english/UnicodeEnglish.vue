@@ -9,7 +9,7 @@ import {
   convertUnicodeStyle,
   listUnicodeStyles,
   normalizeUnicodeStyle,
-} from '@/lib/unicode-english-converter';
+} from './unicode-english-converter';
 
 const input = ref('Professional 2026');
 const styles = listUnicodeStyles();

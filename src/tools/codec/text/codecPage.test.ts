@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { mount } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
-import CodecPage from '@/pages/codec/CodecPage.vue';
+import CodecPage from '@/tools/codec/text/Text.vue';
 
 describe('编解码页面', () => {
   it('随原文输入更新编码，并对无效编码保留原文', async () => {

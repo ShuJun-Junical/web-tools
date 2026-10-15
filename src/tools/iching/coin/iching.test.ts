@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
-import { castCoins, countPositiveCoins, getHexagram, interpretYao } from '@/lib/iching';
-import { hexagramTexts } from '@/lib/iching-text';
+import { castCoins, countPositiveCoins, getHexagram, interpretYao } from './iching';
+import { hexagramTexts } from './iching-text';
 
 describe('周易起卦', () => {
   it('包含六十四卦经文', () => {

@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { mount } from '@vue/test-utils';
 import { describe, expect, it } from 'vitest';
-import IndependencePage from '@/pages/statistic/IndependencePage.vue';
+import IndependencePage from '@/tools/statistic/independence/Independence.vue';
 
 const stubs = {
   ToolPage: { template: '<div><slot /></div>' },

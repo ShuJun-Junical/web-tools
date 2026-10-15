@@ -4,8 +4,8 @@ import ToolPage from '@/components/ToolPage.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useClipboardActions } from '@/composables/useClipboardActions';
-import { castCoins, countPositiveCoins, interpretYao, type Hexagram, yaoNames } from '@/lib/iching';
-import { hexagramTexts } from '@/lib/iching-text';
+import { castCoins, countPositiveCoins, interpretYao, type Hexagram, yaoNames } from './iching';
+import { hexagramTexts } from './iching-text';
 
 const coinTosses = ref(Array.from({ length: 6 }, () => [false, false, false]));
 const hasResult = ref(false);
