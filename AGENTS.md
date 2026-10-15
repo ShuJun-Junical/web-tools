@@ -70,33 +70,42 @@ deps: 添加 prettier 作为开发依赖
 
 ```text
 src/
-├── pages/          # 路由页面；按工具类别分目录；只放路由组件
-├── components/     # 站点通用组件；非路由的页面专属子组件也放这里（如 ExifFieldRow）
-│   └── ui/         # shadcn-vue 基础组件源码
-├── composables/    # 依赖 Vue 响应式、生命周期或浏览器状态的复用逻辑
-├── lib/            # 与 Vue 无关的纯 TypeScript 逻辑
-├── router/         # 路由实例
-├── tests/          # Vitest 纯逻辑与组件交互测试
-├── tools.ts        # 工具目录、导航和路由的唯一数据源
-├── App.vue         # 全站外壳与响应式导航
-└── style.css       # Tailwind 入口与全局设计变量
+├── tools/                      # 工具注册表 + 按工具分的目录树
+│   ├── index.ts                # 工具目录、导航和路由的唯一数据源
+│   └── <type>/<slug>/          # 单个工具的目录；其内平铺该工具专属的 .vue / .ts / .test.ts
+├── pages/                      # 非工具路由页面（首页、404 等）
+├── components/                 # 跨工具复用 + 应用壳层；其下 ui/ 装 shadcn-vue 基件
+│   └── ui/                     # shadcn-vue 基础组件源码
+├── composables/                # 跨工具 composable；只在某工具用就下沉到该工具目录
+├── lib/                        # 跨工具纯 TS 逻辑
+├── router/                     # 路由实例
+├── tests/                      # 全局 Vitest setup（如 ResizeObserver 存根）
+├── App.vue                     # 全站外壳与响应式导航
+└── style.css                   # Tailwind 入口与全局设计变量
 ```
+
+工具目录的契约：
+
+- 路径 `path: '/<type>/<slug>'` ↔ 目录 `src/tools/<type>/<slug>/` ↔ 主入口 `<PascalCase>.vue`（slug 去 kebab 转 PascalCase）。
+- 例如 `/image/exif` ↔ `src/tools/image/exif/ExifHandler.vue`；`/document/markdown-docx` ↔ `src/tools/document/markdown-docx/MarkdownToDocx.vue`。
+- 工具私有 `.vue`、`.ts`、`.test.ts` 平铺在 `src/tools/<type>/<slug>/` 同目录内；vitest 默认 include 是 `**/*.{test,spec}.?(c|m)[jt]s?(x)`，递归覆盖整个工作区，不需要额外 include 配置。
+- 迁移期间老路径 `src/pages/<type>/<Tool>Page.vue` 仍可作为 `tools/index.ts` 中 `component` 字段的临时目标；每个工具迁完一次，同步删除对应老文件。
 
 ## 新增和修改工具
 
-- 新工具页面使用 PascalCase 命名，放入对应的 `src/pages/<category>/` 目录。
-- 在 `src/tools.ts` 登记路径、标题、说明和懒加载组件。首页、侧栏和工具路由都由这份数据生成，不在其他位置重复维护工具列表。
+- 工具页面放 `src/tools/<type>/<slug>/<PascalCase>.vue`，`<PascalCase>` 取自 `<slug>` 去 kebab 转 PascalCase。完整路径契约见上一节。
+- 在 `src/tools/index.ts` 登记路径、标题、说明和懒加载组件（`path` 是路由身份）。首页、侧栏和工具路由都由这份数据生成，不在其他位置重复维护工具列表。
 - 工具页使用 `ToolPage` 保持标题、分类、说明和内容宽度一致。
-- 页面内出现第二处使用的交互模板（如 EXIF 页的字段编辑行）提取为组件；非路由页面根组件一律不得放入 `src/pages/`，统一放在 `src/components/`。
-- 保留已发布 URL；确需改路径时，同时处理旧链接和部署影响。
-- 仅供开发和调试的页面（如 Toast 测试页）放在 `src/pages/dev/`，并在 `src/tools.ts` 中用 `import.meta.env.DEV` 挂载：生产构建既不进导航，也不会打包该页面。
-- 简单工具优先写在单个 `.vue` 文件内。出现以下情况再提取：
+- 简单工具优先写在单个 `.vue` 文件内；出现以下情况再提取为该工具目录下的子组件（与该工具其他文件平铺同目录）：
   - 逻辑需要独立测试；
   - 已被第二处使用；
   - 包含较复杂的异步状态、资源释放或生命周期；
   - 页面已难以看清输入、处理和输出流程。
-- 纯计算、解析和格式转换放在 `src/lib/`，不得依赖 Vue 或 DOM。
-- 只有依赖 `ref`、`computed`、生命周期或浏览器响应式状态的逻辑才写 composable。
+- **文件归属规则**：用一句问句判断——"删除这个文件会破坏几个工具？"只坏一个就放进该工具目录；坏两个及以上、或坏应用壳/路由就放进跨工具共享目录（`components/` 装 vue、`lib/` 装纯 ts、`composables/` 装 reactive / lifecycle）。跨工具导入工具私目录要禁止（要复用就上提到共享位置）。
+- 工具私有 `.ts` 可以用 `ref`、`computed` 和 Vue 生命周期，不强制升级为 `composables/`。
+- 工具私有测试用 `<Name>.test.ts` 命名，平铺在该工具目录下，紧跟被测代码。
+- 保留已发布 URL；确需改路径时，同时处理旧链接和部署影响。
+- 仅供开发和调试的页面放在 `src/tools/dev/<slug>/`，并在 `src/tools/index.ts` 中用 `import.meta.env.DEV` 挂载：生产构建既不进导航，也不会打包该页面。
 
 ## UI 与交互
 
@@ -165,7 +174,7 @@ src/
 - 分支、循环、解析器、统计公式和编解码等非平凡纯逻辑必须有最小 Vitest 覆盖。
 - 修改对应逻辑时至少覆盖正常输入、空输入和已知失败边界；不为一行直观模板代码增加测试。
 - 页面中有自有交互逻辑时，使用 `@vue/test-utils` 挂载组件，并通过 `jsdom` 环境验证用户输入、触发事件后的可见结果或控件状态；无需为静态模板添加测试。
-- Vitest 通过 `src/tests/setup.ts` 为 jsdom 提供 `ResizeObserver` 存根，使 Reka portal 定位组件（Tooltip 等）展开态可在测试中断言。
+- `src/tests/setup.ts` 作为全局 Vitest setup 留原位（jsdom 用的 `ResizeObserver` 存根），使 Reka portal 定位组件（Tooltip 等）展开态可在测试中断言；它本身不是测试用例。vitest 默认 include 已经是 `**/*.{test,spec}.?(c|m)[jt]s?(x)`，递归覆盖整个工作区，因此工具私有测试只要命名为 `*.test.ts` 紧跟被测代码就会被发现，不需要也不要在 `vite.config.ts` 里加 include。
 - 测试范围按单个导出函数判断，先阅读其完整实现和调用链，不得按文件、模块或功能分组一并保留或删除测试。
 - 仅当某个函数完全直接委托现有 npm 包的方法，且未增加任何项目逻辑时才不写单测，信任依赖本身的测试；同模块中的正则识别、校验、转换、组合、错误处理等自有逻辑必须分别保留或补充测试。
 - 删除已有测试前，逐项确认被测函数和断言的归属；仅删除直接验证第三方实现的断言，保留验证项目自有行为的断言。
