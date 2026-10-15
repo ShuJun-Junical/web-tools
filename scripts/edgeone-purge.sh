@@ -1,63 +1,81 @@
 #!/usr/bin/env bash
 #
-# scripts/edgeone-purge.sh —— 通过 EdgeOne OpenAPI 清除 CDN URL 缓存
+# scripts/edgeone-purge.sh —— 通过 EdgeOne OpenAPI 操作 CDN
 #
 # 用法:
-#   TENCENT_CLOUD_SECRET_ID=AKIDxxx \
-#   TENCENT_CLOUD_SECRET_KEY=xxx \
+#   # 首次接入: 列出账号下所有 zone,挑一个 ZoneId 配进 GitHub Secrets
+#   TENCENT_CLOUD_SECRET_ID=AKIDxxx TENCENT_CLOUD_SECRET_KEY=xxx \
+#     ./scripts/edgeone-purge.sh --list-zones
+#
+#   # 清除 CDN URL 缓存
+#   TENCENT_CLOUD_SECRET_ID=AKIDxxx TENCENT_CLOUD_SECRET_KEY=xxx \
 #   ZONE_ID=zone-2xxxxxxxx \
-#   TARGETS="https://web-tools.example.com/ https://web-tools.example.com/index.html" \
-#   ./scripts/edgeone-purge.sh
+#   TARGETS="https://tools.imjz.net/ https://tools.imjz.net/index.html" \
+#     ./scripts/edgeone-purge.sh
 #
-#   ./scripts/edgeone-purge.sh --dry-run   # 只打印签名,不发请求
+#   # 调试签名(不发请求):两个 flag 可任意组合
+#   ./scripts/edgeone-purge.sh --list-zones --dry-run
 #
-# 复用现有 TENCENT_CLOUD_* 凭据;CAM 需要给这对凭据加权限:
-#     teo:CreatePurgeTask, teo:DescribePurgeTasks
+# flag:
+#   --dry-run      算签名但不调 API
+#   --list-zones   跑 DescribeZones,输出 zone_id / zone_name / status 三列
 #
-# 注意: 只清 HTML 入口;hash 命名的 assets/*.js|.css 不要清 —— 它们的 URL
-# 一旦变就是新文件,旧 URL 没意义,清了只会白触发回源。
+# CAM 权限:
+#   list-zones:   teo:DescribeZones
+#   purge:        teo:CreatePurgeTask
+#
+# 注意: 只清 HTML 入口;hash 命名的 assets/*.js|.css 不要清。
 
 set -euo pipefail
 
-# ---- 参数与环境变量 ----
 DRY_RUN=0
-[[ "${1:-}" == "--dry-run" ]] && DRY_RUN=1
+LIST_ZONES=0
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run) DRY_RUN=1 ;;
+    --list-zones) LIST_ZONES=1 ;;
+    *) echo "unknown flag: $arg" >&2; exit 2 ;;
+  esac
+done
 
 : "${TENCENT_CLOUD_SECRET_ID:?must set TENCENT_CLOUD_SECRET_ID}"
 : "${TENCENT_CLOUD_SECRET_KEY:?must set TENCENT_CLOUD_SECRET_KEY}"
-: "${ZONE_ID:?must set ZONE_ID}"
-: "${TARGETS:?must set TARGETS (space-separated URLs)}"
+
+if [[ $LIST_ZONES -eq 0 ]]; then
+  : "${ZONE_ID:?must set ZONE_ID}"
+  : "${TARGETS:?must set TARGETS (space-separated URLs)}"
+fi
 
 HOST="${EDGEONE_API_HOST:-teo.tencentcloudapi.com}"
 SERVICE="teo"
-ACTION="CreatePurgeTask"
 VERSION="2022-09-01"
 REGION="${EDGEONE_REGION:-ap-beijing}"
 ALGO="TC3-HMAC-SHA256"
 
-# ---- 构造 payload ----
-TARGETS_JSON=$(printf '%s\n' "$TARGETS" | tr ' ' '\n' | jq -R . | jq -s 'map(select(length > 0))')
-PAYLOAD=$(jq -nc \
-  --arg zone "$ZONE_ID" \
-  --argjson targets "$TARGETS_JSON" \
-  '{ZoneId: $zone, Type: "purge", Method: "url", Targets: $targets}')
+if [[ $LIST_ZONES -eq 1 ]]; then
+  ACTION="DescribeZones"
+  PAYLOAD='{}'
+else
+  ACTION="CreatePurgeTask"
+  TARGETS_JSON=$(printf '%s\n' "$TARGETS" | tr ' ' '\n' | jq -R . | jq -s 'map(select(length > 0))')
+  PAYLOAD=$(jq -nc \
+    --arg zone "$ZONE_ID" \
+    --argjson targets "$TARGETS_JSON" \
+    '{ZoneId: $zone, Type: "purge", Method: "url", Targets: $targets}')
+fi
 
-# ---- 时间戳 ----
 TS=$(date +%s)
 DATE=$(date -u -r "$TS" +%Y-%m-%d)
 
-# ---- 助手 ----
 sha256_hex() { openssl dgst -sha256 -hex | awk '{print $NF}'; }
 hmac_sha256_hex() {
   local key="$1"
   openssl dgst -sha256 -mac HMAC -macopt "key:${key}" | awk '{print $NF}'
 }
 
-# ---- TC3 签名 ----
 HASHED_PAYLOAD=$(printf '%s' "$PAYLOAD" | sha256_hex)
 
 ACTION_LOWER=$(echo "$ACTION" | tr '[:upper:]' '[:lower:]')
-# 用 ANSI-C quoting 让末尾换行不会被命令替换剥掉
 CANONICAL_HEADERS=$'content-type:application/json; charset=utf-8\nhost:'"$HOST"$'\nx-tc-action:'"$ACTION_LOWER"$'\n'
 SIGNED_HEADERS="content-type;host;x-tc-action"
 
@@ -84,22 +102,15 @@ SIGNATURE=$(printf '%s' "$STRING_TO_SIGN" | hmac_sha256_hex "$SECRET_SIGNING")
 
 AUTH="${ALGO} Credential=${TENCENT_CLOUD_SECRET_ID}/${CREDENTIAL_SCOPE}, SignedHeaders=${SIGNED_HEADERS}, Signature=${SIGNATURE}"
 
-# ---- dry-run ----
 if [[ $DRY_RUN -eq 1 ]]; then
-  cat <<EOF
-== DRY RUN ==
-endpoint: https://${HOST}/
-action:   ${ACTION}
-zone:     ${ZONE_ID}
-region:   ${REGION}
-payload:  ${PAYLOAD}
-signature:${SIGNATURE}
-== END ==
-EOF
+  printf '== DRY RUN ==\nendpoint: https://%s/\naction:   %s\n' "$HOST" "$ACTION"
+  if [[ $LIST_ZONES -eq 0 ]]; then
+    printf 'zone:     %s\nregion:   %s\n' "$ZONE_ID" "$REGION"
+  fi
+  printf 'payload:  %s\nsignature:%s\n== END ==\n' "$PAYLOAD" "$SIGNATURE"
   exit 0
 fi
 
-# ---- 发请求 ----
 resp=$(curl -fsS -X POST "https://${HOST}/" \
   -H "Authorization: ${AUTH}" \
   -H "Content-Type: application/json; charset=utf-8" \
@@ -110,7 +121,12 @@ resp=$(curl -fsS -X POST "https://${HOST}/" \
   -H "X-TC-Region: ${REGION}" \
   -d "$PAYLOAD")
 
-# 错误响应形如 {"Response":{"Error":{"Code":"...","Message":"..."},"RequestId":"..."}}
+if [[ $LIST_ZONES -eq 1 ]]; then
+  # 输出三列: zone_id \t zone_name \t status
+  echo "$resp" | jq -r '.Response.Zones[]? | [.ZoneId, .ZoneName, (.Status // "?")] | @tsv'
+  exit 0
+fi
+
 err_code=$(echo "$resp" | jq -r '.Response.Error.Code // empty')
 if [[ -n "$err_code" ]]; then
   err_msg=$(echo "$resp" | jq -r '.Response.Error.Message')
