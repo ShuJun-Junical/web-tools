@@ -73,13 +73,13 @@ src/
 ├── tools/                      # 工具注册表 + 按工具分的目录树
 │   ├── index.ts                # 工具目录、导航和路由的唯一数据源
 │   └── <type>/<slug>/          # 单个工具的目录；其内平铺该工具专属的 .vue / .ts / .test.ts
-├── pages/                      # 非工具路由页面（首页、404 等）
+├── pages/                      # 非工具路由页面（首页、404、开发调试页等）
 ├── components/                 # 跨工具复用 + 应用壳层；其下 ui/ 装 shadcn-vue 基件
 │   └── ui/                     # shadcn-vue 基础组件源码
 ├── composables/                # 跨工具 composable；只在某工具用就下沉到该工具目录
 ├── lib/                        # 跨工具纯 TS 逻辑
 ├── router/                     # 路由实例
-├── tests/                      # 全局 Vitest setup（如 ResizeObserver 存根）
+├── tests/                      # 全局 Vitest setup（如 ResizeObserver 存根）；跨工具共享代码的测试暂留此处，未来按归属下沉
 ├── App.vue                     # 全站外壳与响应式导航
 └── style.css                   # Tailwind 入口与全局设计变量
 ```
@@ -105,7 +105,7 @@ src/
 - 工具私有 `.ts` 可以用 `ref`、`computed` 和 Vue 生命周期，不强制升级为 `composables/`。
 - 工具私有测试用 `<Name>.test.ts` 命名，平铺在该工具目录下，紧跟被测代码。
 - 保留已发布 URL；确需改路径时，同时处理旧链接和部署影响。
-- 仅供开发和调试的页面放在 `src/tools/dev/<slug>/`，并在 `src/tools/index.ts` 中用 `import.meta.env.DEV` 挂载：生产构建既不进导航，也不会打包该页面。
+- 仅供开发和调试的页面放在 `src/pages/dev/<slug>/`（属于页面，不属于工具），注册由 `src/tools/index.ts` 通过 `import.meta.env.DEV` 守卫按需挂载：生产构建既不进导航，也不会打包该页面。
 
 ## UI 与交互
 
