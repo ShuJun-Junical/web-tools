@@ -58,7 +58,8 @@ export type PresetId =
   | 'macbook-pro-14'
   | 'ipad'
   | 'iphone'
-  | 'galaxy-s24-ultra';
+  | 'galaxy-s24-ultra'
+  | 'oppo-find-x9';
 
 /** 设备预设与厂商标称 PPI；与 PpiSourceEditor 共享同一份列表。 */
 export const ppiPresets: { value: PresetId; label: string; ppi: number }[] = [
@@ -70,4 +71,5 @@ export const ppiPresets: { value: PresetId; label: string; ppi: number }[] = [
   { value: 'ipad', label: 'iPad（Retina）· 264 PPI', ppi: 264 },
   { value: 'iphone', label: 'iPhone（Super Retina）· 460 PPI', ppi: 460 },
   { value: 'galaxy-s24-ultra', label: 'Samsung Galaxy S24 Ultra · 505 PPI', ppi: 505 },
+  { value: 'oppo-find-x9', label: 'OPPO Find X9 · 460 PPI', ppi: 460 },
 ];
