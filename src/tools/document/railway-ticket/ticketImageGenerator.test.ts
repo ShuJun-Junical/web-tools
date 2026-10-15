@@ -15,8 +15,8 @@ import {
   fillSvgTemplate,
   placeholderValues,
   type PlaceholderKey,
-} from '@/lib/ticket/imageGenerator';
-import { toTicket, type TicketData } from '@/lib/ticket/types';
+} from './imageGenerator';
+import { toTicket, type TicketData } from './types';
 
 function makeTicket(overrides: Partial<TicketData> = {}) {
   const base = {

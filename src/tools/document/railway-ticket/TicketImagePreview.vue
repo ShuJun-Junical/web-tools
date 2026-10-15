@@ -10,8 +10,8 @@ import {
   downloadImage,
   generateTicketImage,
   type PlaceholderKey,
-} from '@/lib/ticket/imageGenerator';
-import { text, type Ticket } from '@/lib/ticket/types';
+} from './imageGenerator';
+import { text, type Ticket } from './types';
 
 interface Props {
   ticket: Ticket;

@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { mount, flushPromises } from '@vue/test-utils';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import ExifPage from '@/pages/image/ExifPage.vue';
-import type { ExifField, ExifResult } from '@/lib/exif-types';
+import ExifPage from '@/tools/image/exif/Exif.vue';
+import type { ExifField, ExifResult } from './exif-types';
 
 const dialog = vi.hoisted(() => ({
   file: null as File | null,

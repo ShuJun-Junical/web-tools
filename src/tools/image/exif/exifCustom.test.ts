@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { customTagConfig, dataTypesForGroup, fieldValidationError } from '@/lib/exif-custom';
+import { customTagConfig, dataTypesForGroup, fieldValidationError } from './exif-custom';
 
 describe('ExifTool 自定义字段配置', () => {
   it('为 EXIF 数字标识和 XMP 命名空间生成可写定义', () => {

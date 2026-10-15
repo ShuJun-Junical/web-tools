@@ -10,7 +10,7 @@ import {
   isSupportedImageFile,
   newBlockValidationError,
   sameImageData,
-} from '@/lib/image-container';
+} from './image-container';
 
 const pngSignature = Uint8Array.of(137, 80, 78, 71, 13, 10, 26, 10);
 const encoder = new TextEncoder();

@@ -1,5 +1,5 @@
 import { computed, ref, shallowRef } from 'vue';
-import type { ExifResult } from '@/lib/exif-types';
+import type { ExifResult } from './exif-types';
 
 /**
  * 撤销/重做栈：current 是栈内当前项的视图，其它写入只能通过 init / push / undo / redo / resetToInitial。

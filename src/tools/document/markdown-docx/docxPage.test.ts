@@ -2,7 +2,7 @@
 import { mount, flushPromises } from '@vue/test-utils';
 import { isReactive } from 'vue';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import MarkdownToDocxPage from '@/pages/document/MarkdownToDocxPage.vue';
+import MarkdownToDocxPage from '@/tools/document/markdown-docx/MarkdownToDocx.vue';
 
 const dialog = vi.hoisted(() => ({
   file: null as File | null,

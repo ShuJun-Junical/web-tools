@@ -1,13 +1,13 @@
 import { strToU8, unzipSync, zipSync } from 'fflate';
 import { describe, expect, it } from 'vitest';
-import { buildDocx, pickDocumentTitle } from '@/lib/docx-build';
+import { buildDocx, pickDocumentTitle } from './docx-build';
 import {
   isImagePath,
   isMarkdownPath,
   pickMarkdownEntry,
   readFolderSource,
   readZipSource,
-} from '@/lib/docx-source';
+} from './docx-source';
 
 /** 1×1 PNG，image-size 能读出尺寸即可。atob 要逐字符取码位，直接 from 会把高位字节转成 NaN。 */
 const pngBytes = new Uint8Array(

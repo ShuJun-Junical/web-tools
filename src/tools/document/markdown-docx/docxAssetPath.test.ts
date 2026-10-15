@@ -6,7 +6,7 @@ import {
   isRemoteAssetRef,
   normalizeAssetPath,
   resolveAssetRef,
-} from '@/lib/docx-asset-path';
+} from './docx-asset-path';
 
 const files = [
   'index.md',

@@ -11,8 +11,8 @@ import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { describe, it, expect } from 'vitest';
-import { extractXmlFromPDFBytes } from '@/lib/ticket/pdfParser';
-import { parseXBRL } from '@/lib/ticket/xmlParser';
+import { extractXmlFromPDFBytes } from './pdfParser';
+import { parseXBRL } from './xmlParser';
 
 // fixture 是合成数据，只供测试用；由 scripts/build-pdf-fixture.mjs 生成
 const here = dirname(fileURLToPath(import.meta.url));

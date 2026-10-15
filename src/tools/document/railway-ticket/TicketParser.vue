@@ -3,12 +3,12 @@ import { computed, ref, shallowRef } from 'vue';
 import { Download, FileText, ImageUp, Loader2, RotateCcw, Upload } from '@lucide/vue';
 import { useDropZone, useFileDialog } from '@vueuse/core';
 import ToolPage from '@/components/ToolPage.vue';
-import TicketImagePreview from '@/components/ticket/TicketImagePreview.vue';
+import TicketImagePreview from './TicketImagePreview.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { extractXmlFromOFDBytes } from '@/lib/ticket/ofdParser';
-import { extractXmlFromPDFBytes } from '@/lib/ticket/pdfParser';
-import { parseXBRL } from '@/lib/ticket/xmlParser';
+import { extractXmlFromOFDBytes } from './ofdParser';
+import { extractXmlFromPDFBytes } from './pdfParser';
+import { parseXBRL } from './xmlParser';
 import {
   formatDate,
   formatMoney,
@@ -16,7 +16,7 @@ import {
   toTicket,
   type Ticket,
   type TicketParseResult,
-} from '@/lib/ticket/types';
+} from './types';
 
 const TICKET_FILE_PATTERN = /\.(ofd|pdf)$/i;
 

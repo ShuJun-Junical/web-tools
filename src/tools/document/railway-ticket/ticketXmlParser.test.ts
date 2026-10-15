@@ -6,7 +6,7 @@
  * 架构外元素进 extra、金额 / 税率按 TICKET_FIELDS 的 type 数字化。
  */
 import { describe, it, expect } from 'vitest';
-import { parseXBRL } from '@/lib/ticket/xmlParser';
+import { parseXBRL } from './xmlParser';
 
 const wrap = (inner: string, rootTag = 'xbrl') =>
   `<?xml version="1.0" encoding="UTF-8"?>

@@ -14,8 +14,8 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { describe, it, expect } from 'vitest';
 import { zipSync, strToU8 } from 'fflate';
-import { extractXmlFromOFDBytes } from '@/lib/ticket/ofdParser';
-import { parseXBRL } from '@/lib/ticket/xmlParser';
+import { extractXmlFromOFDBytes } from './ofdParser';
+import { parseXBRL } from './xmlParser';
 
 // fixture 是合成数据，只供测试用；由 scripts/build-ofd-fixture.mjs 生成
 const here = dirname(fileURLToPath(import.meta.url));

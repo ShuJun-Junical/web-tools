@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { commonFieldNames, fieldInfoFor } from '@/lib/exif-presets';
+import { commonFieldNames, fieldInfoFor } from './exif-presets';
 
 describe('字段中文说明字典', () => {
   it('常用字段全部具备中文名和说明', () => {

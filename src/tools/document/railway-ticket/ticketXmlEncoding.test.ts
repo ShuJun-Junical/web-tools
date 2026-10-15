@@ -8,7 +8,7 @@
  * `ticketPdfParser.test.ts` 只验证「两条路径都调用了它」，解码规则本身在这里一次性验完。
  */
 import { describe, it, expect } from 'vitest';
-import { decodeXmlBytes } from '@/lib/ticket/xmlEncoding';
+import { decodeXmlBytes } from './xmlEncoding';
 
 /** GB18030 下「中文」的字节 */
 const GB18030_ZHONGWEN = new Uint8Array([0xd6, 0xd0, 0xce, 0xc4]);

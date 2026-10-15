@@ -23,7 +23,7 @@ import {
   toTicket,
   type Ticket,
   type TicketData,
-} from '@/lib/ticket/types';
+} from './types';
 
 /** 造一张只填了部分字段的 TicketData，其余字段按「全 null」铺满 */
 function makeData(overrides: Partial<TicketData> = {}): TicketData {

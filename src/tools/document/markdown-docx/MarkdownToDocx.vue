@@ -12,8 +12,8 @@ import type {
   DocxWorkerRequest,
   DocxWorkerResponse,
   DocxWorkerSuccess,
-} from '@/lib/docx-worker';
-import type { PagePreset } from '@/lib/docx-build';
+} from './docx-worker';
+import type { PagePreset } from './docx-build';
 
 const pageItems = [
   { value: 'a4', label: 'A4 标准' },
@@ -105,7 +105,7 @@ const issueText = computed(() => {
 });
 
 function getWorker() {
-  worker ??= new Worker(new URL('../../lib/docx-worker.ts', import.meta.url), { type: 'module' });
+  worker ??= new Worker(new URL('./docx-worker.ts', import.meta.url), { type: 'module' });
   return worker;
 }
 

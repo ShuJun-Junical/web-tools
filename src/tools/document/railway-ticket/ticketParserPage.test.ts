@@ -13,7 +13,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 const imagePreview = vi.hoisted(() => ({ rendered: 0 }));
 
-vi.mock('@/components/ticket/TicketImagePreview.vue', () => ({
+vi.mock('./TicketImagePreview.vue', () => ({
   default: {
     name: 'TicketImagePreview',
     props: ['ticket'],
@@ -24,7 +24,7 @@ vi.mock('@/components/ticket/TicketImagePreview.vue', () => ({
   },
 }));
 
-import TicketParserPage from '@/pages/document/TicketParserPage.vue';
+import TicketParserPage from '@/tools/document/railway-ticket/TicketParser.vue';
 
 /** 测试用的文件选择回调容器，页面注册进来后由 open() 触发 */
 const fileDialog = vi.hoisted(() => ({

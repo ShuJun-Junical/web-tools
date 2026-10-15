@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, reactive, ref, shallowRef, watch } from 'vue';
-import { useExifHistory } from '@/composables/useExifHistory';
+import { useExifHistory } from './useExifHistory';
 import { ChevronDown, ImageUp, RotateCcw, RotateCw } from '@lucide/vue';
 import { useDropZone, useEventListener, useFileDialog } from '@vueuse/core';
 import {
@@ -19,7 +19,7 @@ import {
   AlertDialogTitle,
 } from 'reka-ui';
 import ToolPage from '@/components/ToolPage.vue';
-import ExifFieldRow from '@/components/ExifFieldRow.vue';
+import ExifFieldRow from './ExifFieldRow.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -32,15 +32,15 @@ import {
   isSupportedImageFile,
   newBlockValidationError,
   supportedImageExtensions,
-} from '@/lib/image-container';
+} from './image-container';
 import {
   dataTypesForGroup,
   fieldValidationError,
   isExifStyleGroup,
   tagGroups,
-} from '@/lib/exif-custom';
-import { commonFieldNames } from '@/lib/exif-presets';
-import type { ExifAction, ExifField, ExifOperation, ExifResult } from '@/lib/exif-types';
+} from './exif-custom';
+import { commonFieldNames } from './exif-presets';
+import type { ExifAction, ExifField, ExifOperation, ExifResult } from './exif-types';
 
 const accept = supportedImageExtensions.join(',');
 const largeBlockBytes = 32768;
@@ -209,7 +209,7 @@ onBeforeUnmount(() => {
 });
 
 function getWorker() {
-  worker ??= new Worker(new URL('../../lib/exif-worker.ts', import.meta.url), { type: 'module' });
+  worker ??= new Worker(new URL('./exif-worker.ts', import.meta.url), { type: 'module' });
   return worker;
 }
 

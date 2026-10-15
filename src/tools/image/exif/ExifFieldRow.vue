@@ -4,8 +4,8 @@ import { CircleHelp } from '@lucide/vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Tooltip } from '@/components/ui/tooltip';
-import { fieldInfoFor } from '@/lib/exif-presets';
-import type { ExifField } from '@/lib/exif-types';
+import { fieldInfoFor } from './exif-presets';
+import type { ExifField } from './exif-types';
 
 const props = defineProps<{
   field: ExifField;
