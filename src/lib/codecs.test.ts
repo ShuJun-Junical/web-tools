@@ -9,7 +9,7 @@ import {
   looksLikePunycode,
   looksLikeUrlEncoding,
   parseImageDataUrl,
-} from '@/lib/codecs';
+} from './codecs';
 
 describe('Base64 文本转换', () => {
   it.each(['', 'hello', '你好', '工具🙂'])('往返转换 %j', (value) => {

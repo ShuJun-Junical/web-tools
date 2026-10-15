@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { expandYear, formatDateInput, parseDateInput } from '@/lib/date';
+import { expandYear, formatDateInput, parseDateInput } from './date';
 
 describe('日期输入解析', () => {
   it('解析四位年份的紧凑日期', () => {

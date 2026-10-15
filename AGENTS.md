@@ -79,7 +79,7 @@ src/
 ├── composables/                # 跨工具 composable；只在某工具用就下沉到该工具目录
 ├── lib/                        # 跨工具纯 TS 逻辑
 ├── router/                     # 路由实例
-├── tests/                      # 全局 Vitest setup（如 ResizeObserver 存根）；跨工具共享代码的测试暂留此处，未来按归属下沉
+├── tests/                      # 全局 Vitest setup（如 ResizeObserver 存根）
 ├── App.vue                     # 全站外壳与响应式导航
 └── style.css                   # Tailwind 入口与全局设计变量
 ```

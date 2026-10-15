@@ -6,7 +6,7 @@ import {
   phiCoefficient2x2,
   solveContingencyTable,
   summarize,
-} from '@/lib/statistics';
+} from './statistics';
 
 describe('描述统计', () => {
   it('识别非法输入所在行', () => {

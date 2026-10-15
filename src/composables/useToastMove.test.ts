@@ -2,7 +2,7 @@
 import { mount } from '@vue/test-utils';
 import { afterEach, describe, expect, it } from 'vitest';
 import { defineComponent, nextTick, ref, type Ref } from 'vue';
-import { useToastMove } from '@/composables/useToastMove';
+import { useToastMove } from './useToastMove';
 
 interface Item {
   id: number;
