@@ -59,11 +59,18 @@ if [[ $LIST_ZONES -eq 1 ]]; then
   PAYLOAD='{}'
 else
   ACTION="CreatePurgeTask"
+  # TEO CreatePurgeTask 的 Type:
+  #   purge_url      URL 刷新(我们这个场景)
+  #   purge_prefix   目录刷新
+  #   purge_host     Hostname 刷新
+  #   purge_all      站点下全部缓存
+  #   purge_cache_tag cache-tag 刷新
+  # Method(invalidate / delete)只对 prefix/host/all 生效,URL 刷新不能带,带了就 InvalidParameterValue
   TARGETS_JSON=$(printf '%s\n' "$TARGETS" | tr ' ' '\n' | jq -R . | jq -s 'map(select(length > 0))')
   PAYLOAD=$(jq -nc \
     --arg zone "$ZONE_ID" \
     --argjson targets "$TARGETS_JSON" \
-    '{ZoneId: $zone, Type: "purge", Method: "url", Targets: $targets}')
+    '{ZoneId: $zone, Type: "purge_url", Targets: $targets}')
 fi
 
 TS=$(date +%s)
