@@ -73,21 +73,30 @@ DATE=$(date -u -d "@$TS" +%Y-%m-%d 2>/dev/null || date -u -r "$TS" +%Y-%m-%d)
 
 # 用 -binary + xxd -p 拿字节级 hex,避开不同 openssl 版本的输出格式(token 数、大小写)差异
 sha256_hex() { openssl dgst -sha256 -binary 2>/dev/null | xxd -p -c 256; }
+# 第一次 HMAC:key 是用户 secret_key("TC3" + secret_key) 的明文字符串,用 key: 透传
 hmac_sha256_hex() {
   local key="$1"
   openssl dgst -sha256 -mac HMAC -macopt "key:${key}" -binary 2>/dev/null | xxd -p -c 256
 }
+# 后续 HMAC:key 是上一轮 .hex() 的字符串,需要先按 hex 解码成 32 字节二进制才能当 key 用;
+# 走 key: 会把 64 字符 hex 当成 64 字节的 key,sig 就完全错位 —— 之前 CI 一直 SignatureFailure
+# 就是这个原因。hexkey: 让 openssl 自己 decode
+hmac_sha256_hexkey() {
+  local hexkey="$1"
+  openssl dgst -sha256 -mac HMAC -macopt "hexkey:${hexkey}" -binary 2>/dev/null | xxd -p -c 256
+}
 
 HASHED_PAYLOAD=$(printf '%s' "$PAYLOAD" | sha256_hex)
 
-ACTION_LOWER=$(echo "$ACTION" | tr '[:upper:]' '[:lower:]')
-CANONICAL_HEADERS=$'content-type:application/json; charset=utf-8\nhost:'"$HOST"$'\nx-tc-action:'"$ACTION_LOWER"$'\n'
-SIGNED_HEADERS="content-type;host;x-tc-action"
+# 腾讯 TC3 官方 SDK (Python / Go) 都只签 content-type;host,x-tc-action 不进签名
+# 跟着 SDK 走;TEO/CVM 等 API 服务端都按这个格式验签
+CANONICAL_HEADERS=$'content-type:application/json; charset=utf-8\nhost:'"$HOST"$'\n'
+SIGNED_HEADERS="content-type;host"
 
 # 7 行: method / uri / 空行(= 空 query) / canonical-headers / 空行 /
 # signed-headers / hashed-payload
 # 公式 CanonicalHeaders + "\n" + SignedHeaders 要求 headers 和 signed-headers
-# 之间有一个空行(双 \n);少一行服务端算出来 SHA256 就对不上,直接 SignatureFailure
+# 之间有一个空行(双 \n)
 CANONICAL_REQ="POST
 /
 
@@ -104,9 +113,9 @@ ${CREDENTIAL_SCOPE}
 ${HASHED_CANONICAL}"
 
 SECRET_DATE=$(printf '%s' "$DATE" | hmac_sha256_hex "TC3${TENCENT_CLOUD_SECRET_KEY}")
-SECRET_SERVICE=$(printf '%s' "$SERVICE" | hmac_sha256_hex "$SECRET_DATE")
-SECRET_SIGNING=$(printf '%s' "tc3_request" | hmac_sha256_hex "$SECRET_SERVICE")
-SIGNATURE=$(printf '%s' "$STRING_TO_SIGN" | hmac_sha256_hex "$SECRET_SIGNING")
+SECRET_SERVICE=$(printf '%s' "$SERVICE" | hmac_sha256_hexkey "$SECRET_DATE")
+SECRET_SIGNING=$(printf '%s' "tc3_request" | hmac_sha256_hexkey "$SECRET_SERVICE")
+SIGNATURE=$(printf '%s' "$STRING_TO_SIGN" | hmac_sha256_hexkey "$SECRET_SIGNING")
 
 AUTH="${ALGO} Credential=${TENCENT_CLOUD_SECRET_ID}/${CREDENTIAL_SCOPE}, SignedHeaders=${SIGNED_HEADERS}, Signature=${SIGNATURE}"
 
