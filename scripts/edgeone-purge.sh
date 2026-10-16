@@ -84,12 +84,15 @@ ACTION_LOWER=$(echo "$ACTION" | tr '[:upper:]' '[:lower:]')
 CANONICAL_HEADERS=$'content-type:application/json; charset=utf-8\nhost:'"$HOST"$'\nx-tc-action:'"$ACTION_LOWER"$'\n'
 SIGNED_HEADERS="content-type;host;x-tc-action"
 
-# 6 行: method / uri / query / headers / signed-headers / hashed-payload
-# 中间的空行 = CANONICAL_QUERY 是空字符串
+# 7 行: method / uri / 空行(= 空 query) / canonical-headers / 空行 /
+# signed-headers / hashed-payload
+# 公式 CanonicalHeaders + "\n" + SignedHeaders 要求 headers 和 signed-headers
+# 之间有一个空行(双 \n);少一行服务端算出来 SHA256 就对不上,直接 SignatureFailure
 CANONICAL_REQ="POST
 /
 
-${CANONICAL_HEADERS}${SIGNED_HEADERS}
+${CANONICAL_HEADERS}
+${SIGNED_HEADERS}
 ${HASHED_PAYLOAD}"
 
 HASHED_CANONICAL=$(printf '%s' "$CANONICAL_REQ" | sha256_hex)
